@@ -1,1 +1,2 @@
 # Esprit-PABI-4ERPBI5-2526-Youth_Leadership
+Ce projet s’inscrit dans une démarche de Business Intelligence appliquée au domaine scout, avec pour objectif de centraliser, analyser et visualiser les données liées aux activités, aux ressources logistiques et au suivi global du groupe. Il vise à fournir des tableaux de bord interactifs, des indicateurs clés de performance (KPIs) et une vision claire de la participation, de l’organisation et de l’avancement des actions, afin de faciliter la prise de décision et d’améliorer le pilotage des différentes unités.
