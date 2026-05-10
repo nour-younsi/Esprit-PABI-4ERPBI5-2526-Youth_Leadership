@@ -1,0 +1,19 @@
+{
+  "model_type": "SVR (RBF)",
+  "r2_score": 0.9844221760444773,
+  "rmse": 51.800970849096565,
+  "mae": 29.784339296136586,
+  "cv_r2_mean": 0.958924820850578,
+  "cv_r2_std": 0.01872196484506987,
+  "features": [
+    "Nb_Activites_Prevu",
+    "Nb_Adherents",
+    "Activity_Per_Member",
+    "Member_Cost_Ratio",
+    "Activity_Cost_Ratio",
+    "Budget_Efficiency",
+    "Unite_enc"
+  ],
+  "n_samples_training": 400,
+  "n_samples_test": 100
+}

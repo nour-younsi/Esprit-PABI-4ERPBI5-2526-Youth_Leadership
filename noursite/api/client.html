@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML API Client - Prédictions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --thm-primary: #e90b35;
+            --thm-primary-rgb: 233,11,53;
+            --thm-black: #11161f;
+            --thm-black-rgb: 17,22,31;
+            --thm-gray: #767676;
+            --thm-gray-bg: #f5f5f8;
+            --thm-white: #ffffff;
+            --thm-font: 'Barlow', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--thm-font);
+            color: var(--thm-gray);
+            background: var(--thm-gray-bg);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+.app-shell {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    background: var(--thm-gray-bg);
+}
+
+.admin-sidebar {
+    width: 230px;
+    min-height: calc(100vh - 20px);
+    background: var(--thm-black);
+    color: var(--thm-white);
+    border-top: 4px solid var(--thm-primary);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    box-shadow: 8px 0 30px rgba(var(--thm-black-rgb), 0.12);
+}
+
+.admin-sidebar h2 {
+    font-size: 0.95em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--thm-primary);
+    padding: 26px 24px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 14px 0;
+}
+
+.admin-nav a {
+    text-decoration: none;
+    color: #cfd6e3;
+    padding: 13px 24px;
+    font-size: 0.94em;
+    font-weight: 700;
+    border: none;
+    border-left: 4px solid transparent;
+    background: transparent;
+    transition: 0.2s ease;
+}
+
+.admin-nav a:hover {
+    background: #1e2635;
+    color: #ffffff;
+    border-left-color: var(--thm-primary);
+}
+
+.admin-nav a.active {
+    background: var(--thm-primary);
+    color: #ffffff;
+    border-left-color: var(--thm-primary);
+}
+
+.admin-nav a.logout-link {
+    margin-top: auto;
+    color: var(--thm-primary);
+}
+
+.admin-nav a.logout-link:hover {
+    background: rgba(var(--thm-primary-rgb), 0.12);
+    color: var(--thm-primary);
+}
+
+        .container {
+    flex: 1;
+    width: 100%;
+    padding: 24px;
+    overflow-y: auto;
+}
+
+        header {
+    color: var(--thm-white);
+    margin-bottom: 18px;
+    background: linear-gradient(135deg, var(--thm-black), #1d2533);
+    border-top: 4px solid var(--thm-primary);
+    padding: 28px 32px;
+    box-shadow: 0 18px 45px rgba(var(--thm-black-rgb), 0.12);
+}
+
+header h1 {
+    font-size: 2em;
+    margin-bottom: 8px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+header p {
+    font-size: 1em;
+    opacity: 0.75;
+}
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .card {
+    background: var(--thm-white);
+    border-radius: 0;
+    padding: 26px;
+    box-shadow: 0 18px 45px rgba(var(--thm-black-rgb), 0.10);
+    border-top: 4px solid var(--thm-primary);
+}
+
+.card h2 {
+    color: var(--thm-black);
+    margin-bottom: 20px;
+    font-size: 1.25em;
+    border-bottom: 1px solid #eceff5;
+    padding-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--thm-primary);
+            box-shadow: 0 0 0 3px rgba(var(--thm-primary-rgb), 0.1);
+        }
+
+        .models-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+       .model-item {
+    padding: 16px;
+    margin-bottom: 12px;
+    background: #ffffff;
+    border: 1px solid #e6eaf1;
+    cursor: pointer;
+    transition: 0.25s ease;
+    border-left: 4px solid #d8dde7;
+}
+
+.model-item:hover {
+    background: #f9fafc;
+    border-left-color: var(--thm-primary);
+    transform: translateX(4px);
+    box-shadow: 0 10px 25px rgba(var(--thm-black-rgb), 0.08);
+}
+
+.model-item.active {
+    background: rgba(var(--thm-primary-rgb), 0.08);
+    border-left-color: var(--thm-primary);
+    box-shadow: 0 10px 25px rgba(var(--thm-primary-rgb), 0.12);
+}
+
+        .model-item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .model-item-info {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .model-item-badge {
+            display: inline-block;
+            background: var(--thm-primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            margin-right: 5px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--thm-primary);
+            color: white;
+            border: none;
+            border-radius: 0;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(var(--thm-primary-rgb), 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border-left: 4px solid var(--thm-primary);
+            padding: 20px;
+            border-radius: 0;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: #333;
+            text-align: right;
+            margin-left: 20px;
+            word-break: break-word;
+            max-width: 50%;
+        }
+
+        .result-prediction {
+            background: var(--thm-primary);
+            color: white;
+            padding: 20px;
+            border-radius: 0;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .result-prediction-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .result-prediction-value {
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .error {
+            background: #ffebee;
+            border-left-color: #f44336;
+            color: #c62828;
+        }
+
+        .success {
+            background: #e8f5e9;
+            border-left-color: #4caf50;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--thm-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-active {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .probabilities {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+        }
+
+        .prob-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.95em;
+        }
+
+        .prob-bar {
+            display: inline-block;
+            height: 20px;
+            background: var(--thm-primary);
+            border-radius: 3px;
+            min-width: 40px;
+            text-align: center;
+            color: white;
+            font-size: 0.8em;
+        }
+
+        @media (max-width: 768px) {
+            .app-shell {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+
+           .admin-sidebar {
+    width: 100%;
+    min-height: unset;
+    border-top: 0;
+    border-bottom: 3px solid var(--thm-primary);
+    padding: 12px;
+}
+            .admin-nav {
+                flex-direction: row;
+                overflow-x: auto;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        .no-model-message {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-online {
+            background: #4caf50;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+    <aside class="admin-sidebar">
+        <h2>Admin Panel</h2>
+<nav class="admin-nav">
+    <a href="/chatbot">Chatbot</a>
+    <a class="active" href="/client">Client ML</a>
+    <a href="/admin">Matricules</a>
+    <a href="/events">Evénements</a>
+    <a href="/admin/ratings">Évaluations</a>
+    <a href="/admin/bi-dashboard">Dashboard BI</a>
+    <a href="/admin/face-setup">Face ID</a>
+    <a href="/admin/messenger">Messenger</a>
+    <a href="/admin/messenger/analysis">NLP Analyse</a>
+    <a href="/landing">Accueil</a>
+    <a href="/logout" class="logout-link">Logout</a>
+</nav>
+    </aside>
+
+    <div class="container">
+        <header>
+            <h1>🤖 ML Models API Client</h1>
+            <p>Testez vos modèles de Machine Learning en direct</p>
+            <div style="margin-top: 15px;">
+                <span class="status-indicator status-online"></span>
+                <span id="api-status" style="color: #ccc;">API Status: Chargement...</span>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <!-- Panneau gauche: Sélection du modèle -->
+            <div class="card">
+                <h2>📋 Sélectionner un modèle</h2>
+                <div id="models-container" class="models-list">
+                    <div class="no-model-message">Chargement des modèles...</div>
+                </div>
+            </div>
+
+            <!-- Panneau droit: Entrées et résultats -->
+            <div class="card">
+                <h2>⚙️ Paramètres & Résultats</h2>
+
+                <div id="inputs-section" style="display: none;">
+                    <div class="form-group">
+                        <label>Modèle sélectionné:</label>
+                        <input type="text" id="selected-model" readonly style="background: #f5f5f5;">
+                    </div>
+
+                    <div id="dynamic-inputs" class="input-grid"></div>
+
+                    <button id="predict-btn" onclick="makePrediction()">Faire une prédiction</button>
+
+                    <div id="loading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Prédiction en cours...</p>
+                    </div>
+
+                    <div id="result" class="result"></div>
+                </div>
+
+                <div id="no-selection" style="text-align: center; padding: 40px 20px; color: #999;">
+                    <p>👈 Sélectionnez un modèle pour commencer</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let models = [];
+        let selectedModel = null;
+
+        // Charger la liste des modèles au démarrage
+        async function loadModels() {
+            try {
+                const response = await fetch(`${API_BASE}/models`);
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('Session expiree ou acces refuse. Reconnectez-vous.');
+                }
+                if (!response.ok) throw new Error('Erreur reseau');
+                
+                const data = await response.json();
+                models = data.models;
+                
+                renderModels();
+                updateAPIStatus(true);
+            } catch (error) {
+                console.error('Erreur:', error);
+                updateAPIStatus(false);
+                document.getElementById('models-container').innerHTML = 
+                    `<div class="no-model-message" style="color: #f44336;">❌ ${error.message}</div>`;
+            }
+        }
+
+        function updateAPIStatus(online) {
+            const statusEl = document.getElementById('api-status');
+            if (online) {
+                statusEl.innerHTML = '<span class="status-indicator status-online"></span>API Status: En ligne ✓';
+                statusEl.style.color = '#4caf50';
+            } else {
+                statusEl.innerHTML = '<span class="status-indicator" style="background: #f44336;"></span>API Status: Hors ligne ✗';
+                statusEl.style.color = '#f44336';
+            }
+        }
+
+        function getTaskLabel(task) {
+            if (task === 'regression') return 'Régression';
+            if (task === 'classification') return 'Classification';
+            if (task === 'clustering') return 'Segmentation';
+            if (task === 'timeseries') return 'Série temporelle';
+            return 'ML';
+        }
+
+        function getFriendlyModelName(model) {
+            const key = String(model.key || '');
+            const match = key.match(/notebook[_-]?(\d+)/i);
+            const modelNumber = match ? match[1] : null;
+
+            if (model.task === 'timeseries') {
+                return modelNumber
+                    ? `Prévoir l'évolution future (modèle ${modelNumber})`
+                    : "Prévoir l'évolution future";
+            }
+            if (model.task === 'classification') {
+                return modelNumber
+                    ? `Déterminer la catégorie d'un cas (modèle ${modelNumber})`
+                    : "Déterminer la catégorie d'un cas";
+            }
+            if (model.task === 'regression') {
+                return modelNumber
+                    ? `Estimer une valeur chiffrée (modèle ${modelNumber})`
+                    : 'Estimer une valeur chiffrée';
+            }
+            if (model.task === 'clustering') {
+                return modelNumber
+                    ? `Regrouper des profils similaires (modèle ${modelNumber})`
+                    : 'Regrouper des profils similaires';
+            }
+
+            return modelNumber
+                ? `Fonctionnalité ML (modèle ${modelNumber})`
+                : 'Fonctionnalité ML';
+        }
+
+        function getModelPurpose(model) {
+            if (model.task === 'timeseries') {
+                return "Ce modèle sert à prévoir les prochaines valeurs dans le temps.";
+            }
+            if (model.task === 'classification') {
+                return "Ce modèle sert à choisir la catégorie la plus probable.";
+            }
+            if (model.task === 'regression') {
+                return "Ce modèle sert à estimer un résultat numérique.";
+            }
+            if (model.task === 'clustering') {
+                return "Ce modèle sert à regrouper automatiquement des cas similaires.";
+            }
+            return "Ce modèle sert à faire une prédiction ML.";
+        }
+
+        function renderModels() {
+            const container = document.getElementById('models-container');
+            container.innerHTML = '';
+
+            models.forEach((model, index) => {
+                const div = document.createElement('div');
+                div.className = 'model-item';
+                div.onclick = () => selectModel(model, div);
+
+                const taskLabel = getTaskLabel(model.task);
+                const displayName = getFriendlyModelName(model);
+
+                let html = `
+                    <div class="model-item-title">
+                        ${displayName}
+                        <span class="model-item-badge">${taskLabel}</span>
+                    </div>
+                    <div class="model-item-info">
+                        ${getModelPurpose(model)}
+                    </div>
+                    <div class="model-item-info">
+                        📊 Features: ${model.expected_features ? model.expected_features.length : 0}
+                    </div>
+                    <div class="model-item-info" style="opacity: 0.8;">
+                        Référence technique: ${model.key}
+                    </div>
+                `;
+
+                if (model.metrics && Object.keys(model.metrics).length > 0) {
+                    const metricKey = Object.keys(model.metrics)[0];
+                    const metricValue = model.metrics[metricKey].toFixed(4);
+                    html += `<div class="model-item-info">📈 ${metricKey}: ${metricValue}</div>`;
+                }
+
+                div.innerHTML = html;
+                container.appendChild(div);
+            });
+        }
+
+        function selectModel(model, element) {
+            // Retirer l'activité des autres
+            document.querySelectorAll('.model-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+
+            selectedModel = model;
+            document.getElementById('selected-model').value = getFriendlyModelName(model);
+
+            // Rendre visible la section d'entrée
+            document.getElementById('no-selection').style.display = 'none';
+            document.getElementById('inputs-section').style.display = 'block';
+
+            // Générer les champs d'entrée
+            generateInputs(model);
+            
+            // Réinitialiser le résultat
+            document.getElementById('result').classList.remove('show');
+        }
+
+        function generateInputs(model) {
+            const container = document.getElementById('dynamic-inputs');
+            container.innerHTML = '';
+
+            // Cas spécial: série temporelle
+            if (model.task === 'timeseries') {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                div.style.gridColumn = '1 / -1';
+                div.innerHTML = `
+                    <label for="periods">Nombre de périodes à prédire:</label>
+                    <input type="number" id="periods" min="1" max="120" value="12">
+                `;
+                container.appendChild(div);
+                return;
+            }
+
+            // Cas normal: features
+            if (!model.expected_features || model.expected_features.length === 0) {
+                container.innerHTML = '<div class="no-model-message">Aucune feature à remplir</div>';
+                return;
+            }
+
+            model.expected_features.forEach(feature => {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                
+                const label = document.createElement('label');
+                label.htmlFor = feature;
+                label.textContent = feature;
+                
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = feature;
+                input.placeholder = `Entrez une valeur pour ${feature}`;
+                input.step = 'any';
+                
+                div.appendChild(label);
+                div.appendChild(input);
+                container.appendChild(div);
+            });
+        }
+
+        function parseNumericInput(rawValue, featureName) {
+            const normalized = String(rawValue ?? '').trim().replace(',', '.');
+            if (normalized === '') {
+                throw new Error(`Le champ "${featureName}" est obligatoire`);
+            }
+            const value = Number(normalized);
+            if (!Number.isFinite(value)) {
+                throw new Error(`Le champ "${featureName}" doit etre un nombre valide`);
+            }
+            return value;
+        }
+
+        async function makePrediction() {
+            if (!selectedModel) {
+                alert('Veuillez sélectionner un modèle');
+                return;
+            }
+
+            const resultEl = document.getElementById('result');
+            const loadingEl = document.getElementById('loading');
+            const btnEl = document.getElementById('predict-btn');
+
+            try {
+                loadingEl.classList.add('show');
+                resultEl.classList.remove('show');
+                btnEl.disabled = true;
+
+                let payload;
+
+                // Préparation du payload selon le type de modèle
+                if (selectedModel.task === 'timeseries') {
+                    payload = {
+                        periods: parseInt(document.getElementById('periods').value)
+                    };
+                } else {
+                    const features = {};
+                    selectedModel.expected_features.forEach(feature => {
+                        const value = document.getElementById(feature).value;
+                        features[feature] = parseNumericInput(value, feature);
+                    });
+                    payload = { features };
+                }
+
+                // Déterminer l'endpoint
+                const endpoint = selectedModel.task === 'timeseries' ? 'forecast' : 'predict';
+                const url = `${API_BASE}/${endpoint}/${selectedModel.key}`;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                loadingEl.classList.remove('show');
+
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('Session expiree ou acces refuse. Reconnectez-vous.');
+                }
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Erreur de prédiction');
+                }
+
+                const result = await response.json();
+                displayResult(result);
+            } catch (error) {
+                loadingEl.classList.remove('show');
+                displayError(error.message);
+            } finally {
+                btnEl.disabled = false;
+            }
+        }
+
+        function displayResult(result) {
+            const resultEl = document.getElementById('result');
+            resultEl.classList.remove('error');
+            resultEl.classList.add('show', 'success');
+
+            let html = '<div class="result-title">✓ Prédiction réussie</div>';
+
+            if (result.forecast) {
+                // Série temporelle
+                html += '<div class="result-prediction">';
+                html += '<div class="result-prediction-label">Prévisions (' + (result.periods || result.forecast.length) + ' prochaines périodes)</div>';
+                html += '<div class="result-prediction-value">';
+                html += result.forecast.map(v => v.toFixed(2)).join(', ');
+                html += '</div>';
+                html += '</div>';
+            } else if (result.prediction !== undefined) {
+                // Régression
+                let predValue = result.prediction;
+                if (typeof predValue === 'number') {
+                    predValue = predValue.toFixed(4);
+                }
+
+                html += '<div class="result-prediction">';
+                html += '<div class="result-prediction-label">Prédiction</div>';
+                html += '<div class="result-prediction-value">' + predValue + '</div>';
+                html += '</div>';
+
+                // Afficher aussi le segment si clustering
+                if (result.segment) {
+                    html += '<div class="result-item">';
+                    html += '<span class="result-label">Segment:</span>';
+                    html += '<span class="result-value">' + result.segment + '</span>';
+                    html += '</div>';
+                }
+
+                // Afficher les probabilités si classification
+                if (result.probabilities) {
+                    html += '<div class="probabilities">';
+                    html += '<div style="font-weight: 600; margin-bottom: 10px;">Probabilités par classe:</div>';
+                    Object.entries(result.probabilities).forEach(([classe, prob]) => {
+                        const percent = (prob * 100).toFixed(1);
+                        html += `<div class="prob-item">`;
+                        html += `<span>${classe}:</span>`;
+                        html += `<span><div class="prob-bar" style="width: ${percent}%">${percent}%</div></span>`;
+                        html += `</div>`;
+                    });
+                    html += '</div>';
+                }
+            }
+
+            if (result.used_features) {
+                html += '<div class="result-item" style="padding-top: 15px; border-top: 1px solid #ccc;">';
+                html += '<span class="result-label">Features utilisées:</span>';
+                html += '<span class="result-value">' + result.used_features.join(', ') + '</span>';
+                html += '</div>';
+            }
+
+            resultEl.innerHTML = html;
+        }
+
+        function displayError(message) {
+            const resultEl = document.getElementById('result');
+            resultEl.classList.remove('success');
+            resultEl.classList.add('show', 'error');
+            resultEl.innerHTML = `
+                <div class="result-title">❌ Erreur</div>
+                <div class="result-item">
+                    <span class="result-value">${message}</span>
+                </div>
+            `;
+        }
+
+        // Charger les modèles au démarrage
+        window.onload = loadModels;
+    </script>
+</body>
+</html>

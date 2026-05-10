@@ -1,0 +1,93 @@
+GUIDE DE LANCEMENT - NOUVEAU PC (Windows)
+
+1) PRE-REQUIS
+- Windows 10/11
+- Python 3.11 installe (recommande)
+- Git (optionnel mais recommande)
+- PowerShell
+
+2) OUVRIR LE PROJET
+- Extraire/cloner le projet dans un dossier (ex: C:\Users\<you>\Desktop\nour)
+- Ouvrir PowerShell dans ce dossier
+
+3) CREER ET ACTIVER L'ENVIRONNEMENT PYTHON
+Commandes:
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+Si l'activation est bloquee:
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+
+4) INSTALLER LES DEPENDANCES PYTHON
+Commande:
+pip install -r requirements.txt
+
+5) TELECHARGER LES MODELES FACE-ID (si necessaire)
+Commande:
+.\download_face_models.ps1
+
+6) CONFIGURER LES VARIABLES D'ENVIRONNEMENT
+Fichier requis: api\.env
+
+Minimum conseille:
+JWT_SECRET_KEY=change-me-very-long-secret
+FLASK_SECRET_KEY=change-me-flask-secret
+SUPERADMIN_EMAIL=admin@example.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+SMTP_FROM=your_email@gmail.com
+
+Note:
+- Remplacer les valeurs par les votres.
+- Pour Gmail, utiliser un mot de passe d'application.
+
+7) DEMARRER LE PROJET (MODE RECOMMANDE)
+Commande:
+.\start_hybrid.ps1
+
+Attendu:
+- FastAPI backend started: http://127.0.0.1:8000
+- Flask gateway started: http://127.0.0.1:5000
+- Use only: http://127.0.0.1:5000
+
+8) URL A UTILISER
+http://127.0.0.1:5000
+
+Ne pas utiliser 8000 pour la navigation utilisateur normale.
+
+9) TEST RAPIDE DE SANTE
+Commande:
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8000/health | Select-Object StatusCode
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5000/health | Select-Object StatusCode
+
+Les deux doivent retourner 200.
+
+10) SI LE SCRIPT ECHOUE
+A) Verifier que .venv existe
+Test-Path .\.venv\Scripts\python.exe
+
+B) Lancer manuellement les 2 services
+Start-Process -FilePath .\.venv\Scripts\python.exe -ArgumentList "-m uvicorn api.main:app --host 0.0.0.0 --port 8000"
+Start-Process -FilePath .\.venv\Scripts\python.exe -ArgumentList "flask_front\app.py"
+
+C) Verifier les ports
+Get-NetTCPConnection -LocalPort 8000,5000 -State Listen
+
+11) ARRETER LES SERVICES
+Get-CimInstance Win32_Process |
+  Where-Object {
+    $_.Name -eq 'python.exe' -and (
+      $_.CommandLine -match 'uvicorn\s+api.main:app' -or
+      $_.CommandLine -match 'flask_front\\app.py'
+    )
+  } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+
+12) NOTES IMPORTANTES
+- Le fichier DB SQLite est: api\matricules.db
+- Les uploads sont dans: uploads\
+- Le module NLP vocal utilise faster-whisper (premier usage plus lent: chargement modele)
+- En cas de token expire, se reconnecter depuis /login

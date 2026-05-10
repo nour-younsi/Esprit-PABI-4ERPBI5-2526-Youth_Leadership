@@ -1,0 +1,17 @@
+{
+  "model_type": "Gradient Boosting",
+  "r2_score": 0.9782282083075368,
+  "rmse": 61.23949331376165,
+  "mae": 33.648671632722724,
+  "mape": 0.045787785674946874,
+  "features": [
+    "Nb_Activites_Prevu",
+    "Nb_Adherents",
+    "Activity_Per_Member",
+    "Member_Cost_Ratio",
+    "Activity_Cost_Ratio",
+    "Budget_Efficiency",
+    "Unite_enc"
+  ],
+  "n_samples_training": 400
+}

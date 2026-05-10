@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Evenements</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Barlow', sans-serif;
+            background: #f5f5f8;
+            color: #11161f;
+            display: flex;
+            min-height: 100vh;
+        }
+        .admin-sidebar {
+            width: 220px;
+            min-height: 100vh;
+            background: #11161f;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 0 24px 0;
+            flex-shrink: 0;
+        }
+        .admin-sidebar h2 {
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #e90b35;
+            padding: 0 24px 24px 24px;
+            border-bottom: 1px solid #2a3040;
+        }
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            margin-top: 18px;
+            flex: 1;
+        }
+        .admin-nav a {
+            text-decoration: none;
+            color: #bfc5d0;
+            padding: 12px 24px;
+            font-size: 0.97em;
+            font-weight: 600;
+            transition: background 0.15s, color 0.15s;
+        }
+        .admin-nav a:hover { background: #1e2635; color: #fff; }
+        .admin-nav a.active { background: #e90b35; color: #fff; }
+        .admin-nav a.logout-link { margin-top: auto; color: #e90b35; }
+        .admin-nav a.logout-link:hover { background: #e90b35; color: #fff; }
+
+        /* rating badge */
+        .rating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85em;
+            font-weight: 700;
+            color: #e90b35;
+        }
+        .rating-badge .stars-filled { color: #f5a623; }
+        .rating-count { font-size: 0.8em; color: #7a8194; font-weight: 400; }
+
+        /* inline ratings panel */
+        .ratings-panel {
+            display: none;
+            background: #f5f5f8;
+            border: 1px solid #d8dde7;
+            padding: 12px 16px;
+            margin-top: 6px;
+            font-size: 0.88em;
+        }
+        .ratings-panel.open { display: block; }
+        .ratings-panel table { margin-top: 6px; }
+        .ratings-panel th, .ratings-panel td { font-size: 0.83em; padding: 6px 6px; }
+        .btn-sm {
+            border: none;
+            background: #495164;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .btn-sm:hover { background: #11161f; }
+
+        .page {
+            flex: 1;
+            padding: 32px;
+            background: #f5f5f8;
+            overflow-y: auto;
+        }
+        .page-card {
+            background: #fff;
+            border-top: 4px solid #e90b35;
+            box-shadow: 0 20px 50px rgba(17, 22, 31, 0.10);
+            padding: 28px;
+        }
+        h1 {
+            font-size: 1.35em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+        p { color: #5f6675; margin-bottom: 18px; }
+        form {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 3fr 1.4fr auto;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: start;
+        }
+        .autocomplete-wrap { grid-column: span 1; }
+        input, textarea {
+            border: 1px solid #ccd3dd;
+            padding: 10px;
+            font-size: 0.95em;
+            font-family: inherit;
+            width: 100%;
+        }
+        textarea { resize: vertical; min-height: 40px; }
+        button {
+            border: none;
+            background: #11161f;
+            color: #fff;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .danger { background: #e90b35; }
+        .secondary { background: #495164; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border-bottom: 1px solid #eceff5;
+            text-align: left;
+            padding: 10px 6px;
+            font-size: 0.92em;
+            vertical-align: top;
+        }
+        th { text-transform: uppercase; font-size: 0.76em; color: #636b7a; }
+        #msg { margin-top: 10px; min-height: 20px; font-size: 0.88em; }
+        .weather-preview {
+            margin: 8px 0 14px;
+            border: 1px solid #d8dde7;
+            background: #f8fafc;
+            padding: 10px 12px;
+            font-size: 0.9em;
+            color: #243041;
+            display: none;
+        }
+        .weather-preview.show { display: block; }
+        .weather-preview strong { color: #11161f; }
+        .row-actions { display: flex; gap: 8px; }
+        .cell-input {
+            width: 100%;
+            min-width: 120px;
+            border: 1px solid #d8dde7;
+            padding: 7px;
+            font-size: 0.9em;
+        }
+        .event-thumb {
+            width: 84px;
+            height: 56px;
+            object-fit: cover;
+            border: 1px solid #d8dde7;
+        }
+
+        /* Map picker */
+        .location-row { display: flex; gap: 6px; align-items: center; }
+        .location-row input { flex: 1; }
+        .btn-map-pick { border: none; background: #11161f; color: #fff; padding: 10px 12px; cursor: pointer; font-size: 0.82em; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+        .btn-map-pick:hover { background: #e90b35; }
+
+        /* Map picker modal */
+        #map-pick-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 10000; align-items: center; justify-content: center; }
+        #map-pick-overlay.open { display: flex; }
+        #map-pick-modal { background: #fff; width: 680px; max-width: 95vw; border-top: 4px solid #e90b35; box-shadow: 0 20px 60px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
+        #map-pick-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid #eceff5; }
+        #map-pick-header h3 { font-size: 1em; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+        #map-pick-close { border: none; background: none; font-size: 1.4em; cursor: pointer; color: #636b7a; line-height: 1; }
+        #map-pick-close:hover { color: #e90b35; }
+        #map-pick-hint { font-size: 0.82em; color: #636b7a; padding: 8px 18px; background: #f5f5f8; border-bottom: 1px solid #eceff5; }
+        #map-pick-container { height: 380px; }
+        #map-pick-footer { padding: 12px 18px; border-top: 1px solid #eceff5; display: flex; align-items: center; gap: 10px; }
+        #map-pick-address { flex: 1; font-size: 0.88em; color: #11161f; font-weight: 600; min-height: 20px; }
+        #map-pick-confirm { border: none; background: #e90b35; color: #fff; padding: 9px 20px; cursor: pointer; font-weight: 700; font-size: 0.9em; }
+        #map-pick-confirm:disabled { background: #ccd3dd; cursor: default; }
+
+        @media (max-width: 1000px) {
+            form { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 700px) {
+            body { flex-direction: column; }
+            .admin-sidebar { width: 100%; min-height: unset; flex-direction: row; padding: 12px; align-items: center; flex-wrap: wrap; }
+            .admin-sidebar h2 { border-bottom: none; padding: 0 16px 0 0; }
+            .admin-nav { flex-direction: row; margin-top: 0; flex-wrap: wrap; }
+            .admin-nav a { padding: 8px 12px; }
+            .page { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="admin-sidebar">
+        <h2>Admin Panel</h2>
+        <nav class="admin-nav">
+    <a href="/chatbot">Chatbot</a>
+    <a href="/client">Client ML</a>
+    <a href="/admin">Matricules</a>
+    <a href="/events">Evenements</a>
+    <a href="/admin/ratings">Evaluations</a>
+    <a href="/admin/bi-dashboard">Dashboard BI</a>
+    <a href="/landing">Accueil</a>
+    <a href="/admin/face-setup">Face ID</a>
+     <a href="/admin/messenger">Messenger</a>
+         <a href="/admin/messenger/analysis">NLP Analyse</a>
+    <a href="/logout" class="logout-link">Logout</a>
+</nav>
+    </aside>
+
+    <div class="page">
+        <div class="page-card">
+            <h1>Gestion Des Evenements</h1>
+            <p>CRUD complet des evenements: creation, edition et suppression.</p>
+
+            <form id="event-form">
+                <input id="title" placeholder="Titre" required>
+                <input id="event_date" type="datetime-local" step="60" required>
+                <div class="location-row">
+                    <input id="location" placeholder="Lieu (cliquer sur la carte)" readonly>
+                    <button type="button" class="btn-map-pick" onclick="openMapPicker()">&#128205; Choisir sur la carte</button>
+                </div>
+                <textarea id="description" placeholder="Description"></textarea>
+                <input id="event_image" type="file" accept="image/*">
+                <button type="button" class="secondary" id="weather-check-btn">Verifier meteo</button>
+                <button type="submit">Ajouter</button>
+            </form>
+            <div id="weather-preview" class="weather-preview"></div>
+
+            <!-- Map Picker Modal -->
+            <div id="map-pick-overlay">
+                <div id="map-pick-modal">
+                    <div id="map-pick-header">
+                        <h3>Choisir l'emplacement</h3>
+                        <button id="map-pick-close" onclick="closeMapPicker()">&times;</button>
+                    </div>
+                    <div id="map-pick-hint">Cliquez sur la carte pour selectionner l'emplacement de l'evenement</div>
+                    <div id="map-pick-container"></div>
+                    <div id="map-pick-footer">
+                        <span id="map-pick-address">Aucun emplacement selectionne</span>
+                        <button id="map-pick-confirm" disabled onclick="confirmMapPick()">Confirmer</button>
+                    </div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Titre</th><th>Date</th><th>Lieu</th><th>Description</th><th>Image</th><th>Note/Favoris</th><th>Action</th></tr>
+                </thead>
+                <tbody id="event-rows"></tbody>
+            </table>
+            <div id="msg"></div>
+        </div>
+    </div>
+
+    <script>
+        const msg = document.getElementById('msg');
+
+        function setMsg(text, ok = true) {
+            msg.textContent = text;
+            msg.style.color = ok ? '#2e7d32' : '#c62828';
+        }
+
+        function formatWeatherSummary(payload) {
+            const f = payload.forecast || {};
+            return [
+                `Prevision ${payload.forecast_date || '-'}: ${f.weather_label || '-'}`,
+                `Temp: ${f.temperature_min_c ?? '-'}°C a ${f.temperature_max_c ?? '-'}°C`,
+                `Pluie: ${f.precipitation_probability_max ?? '-'}%`,
+                `Vent: ${f.windspeed_max_kmh ?? '-'} km/h`,
+                `${payload.advice || ''}`
+            ].join('\n');
+        }
+
+        function renderWeatherPreview(payload) {
+            const el = document.getElementById('weather-preview');
+            const f = payload.forecast || {};
+            el.innerHTML = `
+                <strong>Prevision meteo (${esc(payload.forecast_date || '-')})</strong><br>
+                Condition: ${esc(f.weather_label || '-')} | 
+                Temperature: ${esc(String(f.temperature_min_c ?? '-'))}°C a ${esc(String(f.temperature_max_c ?? '-'))}°C | 
+                Pluie: ${esc(String(f.precipitation_probability_max ?? '-'))}% | 
+                Vent: ${esc(String(f.windspeed_max_kmh ?? '-'))} km/h<br>
+                Conseil: ${esc(payload.advice || '-')}
+            `;
+            el.classList.add('show');
+        }
+
+        function extractGpsFromLocationText(locationValue) {
+            const v = String(locationValue || '').trim();
+            if (!v) return null;
+            const tagged = v.match(/\[GPS:\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\]/i);
+            if (tagged) {
+                const lon = Number(tagged[1]);
+                const lat = Number(tagged[2]);
+                if (Number.isFinite(lat) && Number.isFinite(lon)) return { lat, lon };
+            }
+            const raw = v.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+            if (raw) {
+                const a = Number(raw[1]);
+                const b = Number(raw[2]);
+                if (Math.abs(a) <= 90 && Math.abs(b) <= 180) return { lat: a, lon: b };
+                if (Math.abs(a) <= 180 && Math.abs(b) <= 90) return { lat: b, lon: a };
+            }
+            return null;
+        }
+
+        async function fetchWeatherPreviewFromBrowser(eventDateValue, locationValue) {
+            const coords = extractGpsFromLocationText(locationValue);
+            if (!coords) {
+                throw new Error('Lieu sans GPS valide. Choisissez le lieu sur la carte.');
+            }
+            const day = toApiEventDate(eventDateValue).slice(0, 10);
+            if (!day) throw new Error('Date invalide.');
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat.toFixed(6)}&longitude=${coords.lon.toFixed(6)}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max&timezone=auto&start_date=${day}&end_date=${day}`;
+            const res = await fetch(url);
+            if (!res.ok) {
+                if (res.status === 400) {
+                    throw new Error('Date trop lointaine pour la prevision meteo (verifier sur les prochains jours).');
+                }
+                throw new Error('Service meteo indisponible.');
+            }
+            const data = await res.json();
+            const daily = data.daily || {};
+            if (!daily.time || !daily.time.length) {
+                throw new Error('Aucune prevision meteo disponible pour cette date.');
+            }
+
+            const code = Number((daily.weathercode || [0])[0] || 0);
+            const labels = {
+                0: 'Ciel degage', 1: 'Plutot degage', 2: 'Partiellement nuageux', 3: 'Couvert',
+                45: 'Brouillard', 48: 'Brouillard givrant', 51: 'Bruine faible', 53: 'Bruine moderee',
+                55: 'Bruine forte', 61: 'Pluie faible', 63: 'Pluie moderee', 65: 'Pluie forte',
+                71: 'Neige faible', 73: 'Neige moderee', 75: 'Neige forte',
+                80: 'Averses faibles', 81: 'Averses moderees', 82: 'Averses violentes',
+                95: 'Orage', 96: 'Orage avec grele faible', 99: 'Orage avec grele forte'
+            };
+            const precip = Number((daily.precipitation_probability_max || [0])[0] || 0);
+            const wind = Number((daily.windspeed_10m_max || [0])[0] || 0);
+            const rainyCodes = new Set([51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99]);
+            let advice = 'Conditions globalement favorables pour maintenir l\'evenement.';
+            if (rainyCodes.has(code) || precip >= 55) advice = 'Risque de pluie: prevoir un plan B ou une zone couverte.';
+            else if (wind >= 45) advice = 'Vent soutenu: verifier la securite des installations exterieures.';
+            else if (precip >= 30) advice = 'Risque meteo modere: validez la logistique (abris, horaires flexibles).';
+
+            return {
+                event_date: toApiEventDate(eventDateValue),
+                forecast_date: day,
+                location: locationValue,
+                coords: { lat: Number(coords.lat.toFixed(6)), lon: Number(coords.lon.toFixed(6)) },
+                forecast: {
+                    weather_code: code,
+                    weather_label: labels[code] || 'Conditions variables',
+                    temperature_max_c: Number(Number((daily.temperature_2m_max || [0])[0] || 0).toFixed(1)),
+                    temperature_min_c: Number(Number((daily.temperature_2m_min || [0])[0] || 0).toFixed(1)),
+                    precipitation_probability_max: Number(precip.toFixed(1)),
+                    windspeed_max_kmh: Number(wind.toFixed(1))
+                },
+                advice
+            };
+        }
+
+        async function fetchWeatherPreviewOrThrow() {
+            const eventDateValue = document.getElementById('event_date').value;
+            const locationValue = (document.getElementById('location').value || '').trim();
+            if (!eventDateValue) {
+                throw new Error('Choisissez la date de l\'evenement.');
+            }
+            if (!locationValue) {
+                throw new Error('Choisissez d\'abord le lieu sur la carte.');
+            }
+
+            const res = await fetch('/admin/events/weather-preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event_date: toApiEventDate(eventDateValue),
+                    location: locationValue
+                })
+            });
+            let payload = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                // If backend cannot reach weather provider, use browser-side fallback.
+                if (res.status === 503) {
+                    try {
+                        payload = await fetchWeatherPreviewFromBrowser(eventDateValue, locationValue);
+                    } catch {
+                        throw new Error('Meteo indisponible pour le moment (serveur + navigateur).');
+                    }
+                } else {
+                    throw new Error(payload.detail || 'Impossible de recuperer la meteo.');
+                }
+            }
+            renderWeatherPreview(payload);
+            return payload;
+        }
+
+        function esc(v) {
+            return (v ?? '').toString()
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function toDateTimeLocalValue(raw) {
+            const value = (raw || '').toString().trim();
+            if (!value) return '';
+            // Already compatible with datetime-local (YYYY-MM-DDTHH:MM...)
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) return value.slice(0, 16);
+            // SQL-like format: YYYY-MM-DD HH:MM[:SS]
+            if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/.test(value)) {
+                return value.replace(' ', 'T').slice(0, 16);
+            }
+            // Legacy date-only values are shown with default admin hour.
+            if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return `${value}T09:00`;
+            return '';
+        }
+
+        function toApiEventDate(dateTimeLocalValue) {
+            const value = (dateTimeLocalValue || '').toString().trim();
+            if (!value) return '';
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+                return `${value.replace('T', ' ')}:00`;
+            }
+            // Support manual localized input: DD/MM/YYYY HH:MM or DD-MM-YYYY HH:MM
+            const fr = value.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})\s+(\d{2}):(\d{2})$/);
+            if (fr) {
+                const dd = fr[1], mm = fr[2], yyyy = fr[3], hh = fr[4], min = fr[5];
+                return `${yyyy}-${mm}-${dd} ${hh}:${min}:00`;
+            }
+            // Support SQL-like manual input.
+            if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}(:\d{2})?$/.test(value)) {
+                return value.length === 16 ? `${value}:00` : value;
+            }
+            return value.replace('T', ' ');
+        }
+
+        async function loadEvents() {
+            const res = await fetch('/admin/events');
+            if (!res.ok) {
+                setMsg('Chargement des evenements impossible.', false);
+                return;
+            }
+            const data = await res.json();
+            const tbody = document.getElementById('event-rows');
+            tbody.innerHTML = '';
+
+            for (const ev of data.events) {
+                // rating badge text
+                const avgDisplay = ev.rating_count > 0
+                    ? `<span class="rating-badge"><span class="stars-filled">★</span>${ev.avg_rating.toFixed(1)}/5</span> <span class="rating-count">(${ev.rating_count} avis)</span>`
+                    : `<span class="rating-count">Aucun avis</span>`;
+                const favDisplay = `<span class="rating-count">${Number(ev.favorite_count || 0)} favoris</span>`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${ev.id}</td>
+                    <td><input class="cell-input" data-f="title" value="${esc(ev.title)}"></td>
+                    <td><input class="cell-input" data-f="event_date" type="datetime-local" step="60" value="${esc(toDateTimeLocalValue(ev.event_date))}"></td>
+                    <td style="white-space:nowrap"><input class="cell-input" data-f="location" value="${esc(ev.location || '')}"> <button type="button" class="btn-sm" style="margin-top:4px" onclick="openMapPicker(this.previousElementSibling)">&#128205;</button></td>
+                    <td><textarea class="cell-input" data-f="description">${esc(ev.description || '')}</textarea></td>
+                    <td>
+                        ${ev.image_path ? `<img class="event-thumb" src="${esc(ev.image_path)}" alt="image evenement">` : '-'}
+                        <div style="margin-top:6px;"><input class="cell-input" data-f="image" type="file" accept="image/*"></div>
+                    </td>
+                    <td>
+                        ${avgDisplay}
+                        <br>${favDisplay}
+                        ${ev.rating_count > 0 ? `<br><button class="btn-sm" data-toggle-ratings="${ev.id}">Voir avis</button>` : ''}
+                        <br><button class="btn-sm" data-toggle-favorites="${ev.id}">Voir favoris</button>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="secondary" data-action="save">Sauver</button>
+                            <button class="danger" data-action="delete">Supprimer</button>
+                        </div>
+                    </td>
+                `;
+
+                // inline ratings panel row
+                const panelTr = document.createElement('tr');
+                panelTr.id = `panel-${ev.id}`;
+                panelTr.innerHTML = `<td colspan="8"><div class="ratings-panel" id="ratings-panel-${ev.id}"></div></td>`;
+
+                tr.querySelector('[data-action="save"]').addEventListener('click', async () => {
+                    const imageInput = tr.querySelector('[data-f="image"]');
+                    const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
+
+                    let r;
+                    if (hasNewImage) {
+                        const formData = new FormData();
+                        formData.append('title', tr.querySelector('[data-f="title"]').value || '');
+                        formData.append('event_date', toApiEventDate(tr.querySelector('[data-f="event_date"]').value) || '');
+                        formData.append('location', tr.querySelector('[data-f="location"]').value || '');
+                        formData.append('description', tr.querySelector('[data-f="description"]').value || '');
+                        formData.append('image', imageInput.files[0]);
+
+                        r = await fetch(`/admin/events/${ev.id}/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                    } else {
+                    const payload = {
+                        title: tr.querySelector('[data-f="title"]').value,
+                        event_date: toApiEventDate(tr.querySelector('[data-f="event_date"]').value) || null,
+                        location: tr.querySelector('[data-f="location"]').value || null,
+                        description: tr.querySelector('[data-f="description"]').value || null
+                    };
+
+                        r = await fetch(`/admin/events/${ev.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    }
+
+                    if (r.ok) {
+                        setMsg(`Evenement ${ev.id} mis a jour.`);
+                        loadEvents();
+                    } else {
+                        let detail = '';
+                        try {
+                            const err = await r.json();
+                            detail = err?.detail ? ` (${err.detail})` : '';
+                        } catch {}
+                        if (r.status === 401 || r.status === 403) {
+                            setMsg('Session expiree ou droits insuffisants. Reconnectez-vous.', false);
+                        } else {
+                            setMsg(`Mise a jour impossible${detail}.`, false);
+                        }
+                    }
+                });
+
+                tr.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+                    const r = await fetch(`/admin/events/${ev.id}`, { method: 'DELETE' });
+                    if (r.ok) {
+                        setMsg(`Evenement ${ev.id} supprime.`);
+                        loadEvents();
+                    } else {
+                        setMsg('Suppression impossible.', false);
+                    }
+                });
+
+                const toggleBtn = tr.querySelector(`[data-toggle-ratings="${ev.id}"]`);
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', async () => {
+                        const panel = document.getElementById(`ratings-panel-${ev.id}`);
+                        if (panel.classList.contains('open')) {
+                            panel.classList.remove('open');
+                            panel.dataset.mode = '';
+                            toggleBtn.textContent = 'Voir avis';
+                            return;
+                        }
+                        toggleBtn.textContent = 'Chargement...';
+                        const rr = await fetch(`/admin/events/${ev.id}/ratings`);
+                        if (!rr.ok) { toggleBtn.textContent = 'Erreur'; return; }
+                        const rd = await rr.json();
+                        panel.innerHTML = renderRatingsTable(rd.ratings);
+                        panel.classList.add('open');
+                        panel.dataset.mode = 'ratings';
+                        toggleBtn.textContent = 'Masquer avis';
+                    });
+                }
+
+                const favToggleBtn = tr.querySelector(`[data-toggle-favorites="${ev.id}"]`);
+                if (favToggleBtn) {
+                    favToggleBtn.addEventListener('click', async () => {
+                        const panel = document.getElementById(`ratings-panel-${ev.id}`);
+                        if (panel.classList.contains('open') && panel.dataset.mode === 'favorites') {
+                            panel.classList.remove('open');
+                            panel.dataset.mode = '';
+                            favToggleBtn.textContent = 'Voir favoris';
+                            return;
+                        }
+                        favToggleBtn.textContent = 'Chargement...';
+                        const rr = await fetch(`/admin/events/${ev.id}/favorites`);
+                        if (!rr.ok) { favToggleBtn.textContent = 'Erreur'; return; }
+                        const rd = await rr.json();
+                        panel.innerHTML = renderFavoritesTable(rd.favorites, rd.favorite_count);
+                        panel.classList.add('open');
+                        panel.dataset.mode = 'favorites';
+                        favToggleBtn.textContent = 'Masquer favoris';
+                    });
+                }
+
+                tbody.appendChild(tr);
+                tbody.appendChild(panelTr);
+            }
+        }
+
+        function renderRatingsTable(ratings) {
+            if (!ratings || ratings.length === 0) return '<em>Aucune evaluation.</em>';
+            const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+            const rows = ratings.map(r =>
+                `<tr>
+                    <td>${esc(r.username || '-')}</td>
+                    <td>${esc(r.email || '-')}</td>
+                    <td style="color:#f5a623;letter-spacing:2px">${stars(r.stars)}</td>
+                    <td>${r.stars}/5</td>
+                    <td>${esc((r.updated_at || '').slice(0, 16).replace('T', ' '))}</td>
+                </tr>`
+            ).join('');
+            return `<strong>Evaluations individuelles</strong>
+                <table>
+                    <thead><tr><th>Utilisateur</th><th>Email</th><th>Note</th><th>Score</th><th>Date</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        }
+
+        function renderFavoritesTable(favorites, count) {
+            if (!favorites || favorites.length === 0) return '<em>Aucun favori pour cet evenement.</em>';
+            const rows = favorites.map(f =>
+                `<tr>
+                    <td>${esc(String(f.user_id || '-'))}</td>
+                    <td>${esc(f.username || '-')}</td>
+                    <td>${esc(f.email || '-')}</td>
+                    <td>${esc((f.created_at || '').slice(0, 16).replace('T', ' '))}</td>
+                </tr>`
+            ).join('');
+            return `<strong>Utilisateurs ayant ajoute en favoris (${Number(count || favorites.length)})</strong>
+                <table>
+                    <thead><tr><th>User ID</th><th>Username</th><th>Email</th><th>Date</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        }
+
+        document.getElementById('event-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let weatherPayload = null;
+            try {
+                weatherPayload = await fetchWeatherPreviewOrThrow();
+            } catch (err) {
+                const proceedWithoutWeather = confirm((err.message || 'Verification meteo impossible.') + '\n\nContinuer l\'ajout sans prevision meteo ?');
+                if (!proceedWithoutWeather) {
+                    setMsg('Ajout annule.', false);
+                    return;
+                }
+            }
+
+            if (weatherPayload) {
+                const canContinue = confirm(`${formatWeatherSummary(weatherPayload)}\n\nConfirmer l'ajout de l'evenement ?`);
+                if (!canContinue) {
+                    setMsg('Ajout annule apres verification meteo.', false);
+                    return;
+                }
+            }
+
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            const eventDateValue = document.getElementById('event_date').value;
+            formData.append('event_date', toApiEventDate(eventDateValue));
+            formData.append('location', document.getElementById('location').value || '');
+            formData.append('description', document.getElementById('description').value || '');
+            const imageInput = document.getElementById('event_image');
+            if (imageInput.files && imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
+            }
+
+            const res = await fetch('/admin/events/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                setMsg('Evenement ajoute.');
+                document.getElementById('event-form').reset();
+                document.getElementById('weather-preview').classList.remove('show');
+                document.getElementById('weather-preview').innerHTML = '';
+                loadEvents();
+            } else {
+                setMsg('Ajout impossible.', false);
+            }
+        });
+
+        document.getElementById('weather-check-btn').addEventListener('click', async () => {
+            try {
+                const payload = await fetchWeatherPreviewOrThrow();
+                setMsg(`Prevision recuperee: ${payload.forecast.weather_label}.`);
+            } catch (err) {
+                setMsg(err.message || 'Verification meteo impossible.', false);
+            }
+        });
+
+        loadEvents();
+
+        /* ── Mapbox Map Picker ── */
+       const MAPBOX_TOKEN = 'YOUR_MAPBOX_TOKEN_HERE';
+        let pickMap = null, pickMarker = null, pickedAddress = null, activePickInput = null;
+
+        function openMapPicker(inputEl) {
+            activePickInput = inputEl || document.getElementById('location');
+            pickedAddress = null;
+            document.getElementById('map-pick-address').textContent = 'Cliquez sur la carte pour choisir...';
+            document.getElementById('map-pick-confirm').disabled = true;
+            document.getElementById('map-pick-overlay').classList.add('open');
+
+            if (!pickMap) {
+                mapboxgl.accessToken = MAPBOX_TOKEN;
+                pickMap = new mapboxgl.Map({
+                    container: 'map-pick-container',
+                    style: 'mapbox://styles/mapbox/satellite-streets-v12',
+                    center: [9.5375, 33.8869],
+                    zoom: 6
+                });
+                pickMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+                pickMap.on('click', onMapClick);
+            } else {
+                pickMap.resize();
+            }
+        }
+
+        async function onMapClick(e) {
+            const { lng, lat } = e.lngLat;
+            if (pickMarker) pickMarker.remove();
+            pickMarker = new mapboxgl.Marker({ color: '#e90b35' })
+                .setLngLat([lng, lat])
+                .addTo(pickMap);
+
+            document.getElementById('map-pick-address').textContent = 'Chargement...';
+            document.getElementById('map-pick-confirm').disabled = true;
+
+            const coordsSuffix = `${lng.toFixed(6)},${lat.toFixed(6)}`;
+            try {
+                const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?language=fr&access_token=${MAPBOX_TOKEN}`);
+                const data = await res.json();
+                const placeName = data.features && data.features[0] ? data.features[0].place_name : null;
+                // Store a readable value with embedded exact GPS for the public front map.
+                pickedAddress = placeName ? `${placeName} [GPS:${coordsSuffix}]` : `[GPS:${coordsSuffix}]`;
+                document.getElementById('map-pick-address').textContent = placeName || coordsSuffix;
+                document.getElementById('map-pick-confirm').disabled = false;
+            } catch {
+                pickedAddress = `[GPS:${coordsSuffix}]`;
+                document.getElementById('map-pick-address').textContent = coordsSuffix;
+                document.getElementById('map-pick-confirm').disabled = false;
+            }
+        }
+
+        function confirmMapPick() {
+            if (pickedAddress && activePickInput) {
+                activePickInput.value = pickedAddress;
+            }
+            closeMapPicker();
+        }
+
+        function closeMapPicker() {
+            document.getElementById('map-pick-overlay').classList.remove('open');
+        }
+
+        document.getElementById('map-pick-overlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('map-pick-overlay')) closeMapPicker();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard BI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Barlow', sans-serif;
+            background: #f5f5f8;
+            color: #11161f;
+            display: flex;
+            min-height: 100vh;
+        }
+        .admin-sidebar {
+            width: 220px;
+            min-height: 100vh;
+            background: #11161f;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 0 24px 0;
+            flex-shrink: 0;
+        }
+        .admin-sidebar h2 {
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #e90b35;
+            padding: 0 24px 24px 24px;
+            border-bottom: 1px solid #2a3040;
+        }
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            margin-top: 18px;
+            flex: 1;
+        }
+        .admin-nav a {
+            text-decoration: none;
+            color: #bfc5d0;
+            padding: 12px 24px;
+            font-size: 0.97em;
+            font-weight: 600;
+            transition: background 0.15s, color 0.15s;
+        }
+        .admin-nav a:hover { background: #1e2635; color: #fff; }
+        .admin-nav a.active { background: #e90b35; color: #fff; }
+        .admin-nav a.logout-link { margin-top: auto; color: #e90b35; }
+        .admin-nav a.logout-link:hover { background: #e90b35; color: #fff; }
+
+        .page {
+            flex: 1;
+            padding: 20px;
+            background: #f5f5f8;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .page-card {
+            background: #fff;
+            border-top: 4px solid #e90b35;
+            box-shadow: 0 20px 50px rgba(17, 22, 31, 0.10);
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        h1 {
+            font-size: 1.2em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .open-btn {
+            text-decoration: none;
+            border: none;
+            background: #11161f;
+            color: #fff;
+            padding: 10px 14px;
+            font-weight: 700;
+        }
+        .open-btn:hover { background: #e90b35; }
+
+        .frame-wrap {
+            background: #fff;
+            box-shadow: 0 20px 50px rgba(17, 22, 31, 0.10);
+            flex: 1;
+            min-height: 0;
+            border-top: 4px solid #11161f;
+            position: relative;
+            overflow: hidden;
+        }
+        #bi-container {
+            width: 100%;
+            height: 100%;
+            min-height: calc(100vh - 120px);
+        }
+        #bi-container iframe {
+            border: 0;
+        }
+        #bi-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: #fff;
+            z-index: 2;
+            color: #636b7a;
+            font-size: 0.95em;
+        }
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid #eceff5;
+            border-top-color: #e90b35;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; }
+            .admin-sidebar { width: 100%; min-height: unset; padding: 12px; }
+            .admin-sidebar h2 { border-bottom: none; padding: 0 16px 0 0; }
+            .admin-nav { flex-direction: row; margin-top: 0; flex-wrap: wrap; }
+            .admin-nav a { padding: 8px 12px; }
+            .page { padding: 12px; }
+            .frame-wrap { min-height: 70vh; }
+        }
+
+        /* ── Face Verification Overlay ── */
+        #face-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 22, 31, 0.96);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #face-card {
+            background: #fff;
+            border-top: 4px solid #e90b35;
+            padding: 32px 28px 24px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        #face-card h2 {
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+            color: #11161f;
+        }
+        #face-subtitle {
+            color: #636b7a;
+            font-size: 0.87em;
+            margin-bottom: 18px;
+        }
+        #camera-container {
+            position: relative;
+            width: 280px;
+            height: 210px;
+            margin: 0 auto 16px;
+            background: #11161f;
+            overflow: hidden;
+        }
+        #face-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            display: block;
+        }
+        #face-canvas {
+            position: absolute;
+            inset: 0;
+            transform: scaleX(-1);
+        }
+        #face-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            font-size: 0.88em;
+            color: #636b7a;
+            min-height: 22px;
+        }
+        .status-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #bfc5d0;
+            flex-shrink: 0;
+        }
+        .status-dot.loading { background: #f2c811; animation: dpulse 1s ease-in-out infinite; }
+        .status-dot.success { background: #22c55e; }
+        .status-dot.warning { background: #f97316; }
+        .status-dot.error   { background: #e90b35; }
+        @keyframes dpulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+        #face-actions button {
+            background: #11161f;
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            font-weight: 700;
+            font-size: 0.88em;
+            cursor: pointer;
+            margin: 4px;
+            letter-spacing: 0.03em;
+        }
+        #face-actions button:hover { background: #e90b35; }
+        #face-actions button:disabled { background: #bfc5d0; cursor: not-allowed; }
+        .face-hint { font-size: 0.76em; color: #bfc5d0; margin-top: 14px; }
+        .face-hint a { color: #bfc5d0; }
+        #face-success-screen {
+            position: fixed; inset: 0;
+            background: rgba(17, 22, 31, 0.97);
+            z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 10px; color: #fff; text-align: center;
+        }
+        #face-success-screen .chk { font-size: 3.5em; }
+        #face-success-screen h3 { font-size: 1.2em; letter-spacing: 0.04em; }
+        #face-success-screen p { opacity: 0.55; font-size: 0.88em; }
+    </style>
+</head>
+<body>
+    <!-- ── Face Verification Overlay ── -->
+    <div id="face-overlay">
+        <div id="face-card">
+            <h2>&#128274; Vérification Biométrique</h2>
+            <p id="face-subtitle">Positionnez votre visage devant la caméra</p>
+            <div id="camera-container">
+                <video id="face-video" autoplay muted playsinline></video>
+                <canvas id="face-canvas"></canvas>
+            </div>
+            <div id="face-status-bar">
+                <div class="status-dot loading" id="status-dot"></div>
+                <span id="face-status-text">Chargement des modèles IA...</span>
+            </div>
+            <div id="face-actions">
+                <button id="btn-enroll" onclick="enrollFace()" style="display:none">Enregistrer mon visage</button>
+                <button id="btn-retry" onclick="window.location.reload()" style="display:none">Réessayer</button>
+            </div>
+            <p class="face-hint">
+                Accès admin sécurisé par reconnaissance faciale.<br>
+                <a href="#" onclick="resetFaceData();return false;">Réinitialiser les données biométriques</a>
+            </p>
+        </div>
+    </div>
+
+    <aside class="admin-sidebar">
+        <h2>Admin Panel</h2>
+       <nav class="admin-nav">
+    <a href="/chatbot">Chatbot</a>
+    <a href="/client">Client ML</a>
+    <a href="/admin">Matricules</a>
+    <a href="/events">Evenements</a>
+    <a href="/admin/ratings">Evaluations</a>
+    <a href="/admin/bi-dashboard">Dashboard BI</a>
+    <a href="/landing">Accueil</a>
+    <a href="/admin/face-setup">Face ID</a>
+    <a href="/api/messenger">Messenger</a>
+    <a href="/api/messenger/analysis">NLP Analyse</a>
+    <a href="/logout" class="logout-link">Logout</a>
+</nav>
+   </aside>
+
+<div class="page">
+    <div class="page-card">
+        <div>
+            <h1>Dashboard BI</h1>
+            <p style="color:#636b7a;margin-top:6px;">
+                Connecté sur le site avec :
+                <strong>{{ user_email }}</strong>
+            </p>
+        </div>
+
+        <a class="open-btn" href="{{ powerbi_url }}" target="_blank" rel="noopener noreferrer">
+            Ouvrir dans Power BI
+        </a>
+    </div>
+
+    <div class="frame-wrap">
+        <div id="bi-loading">
+            <div class="spinner"></div>
+            <span>Chargement du dashboard Power BI...</span>
+        </div>
+
+        <iframe
+            id="bi-frame"
+            src="{{ powerbi_url }}"
+            style="width:100%;height:100%;min-height:calc(100vh - 120px);border:0;display:block;"
+            allowfullscreen="true">
+        </iframe>
+    </div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        /* ── BI iframe spinner ── */
+        var frame   = document.getElementById('bi-frame');
+        var loading = document.getElementById('bi-loading');
+        frame.addEventListener('load', function () { loading.style.display = 'none'; });
+        setTimeout(function () { loading.style.display = 'none'; }, 15000);
+
+        /* ── Face Verification ── */
+        var MODELS_URL = '/face-models';
+        var THRESHOLD  = 0.50;
+        var camStream  = null;
+        var detectLoop = null;
+        var _storedDescriptor = null;  // loaded from DB
+
+        async function initFaceVerification() {
+            try {
+                setStatus('Chargement des modèles IA...', 'loading');
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODELS_URL);
+                await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODELS_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODELS_URL);
+
+                // Load descriptor from server DB
+                setStatus('Chargement du profil biométrique...', 'loading');
+                var r = await fetch('/api/face-descriptor', { credentials: 'include' });
+                var data = await r.json();
+
+                setStatus('Démarrage de la caméra...', 'loading');
+                camStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 320, height: 240, facingMode: 'user' }
+                });
+                var video = document.getElementById('face-video');
+                video.srcObject = camStream;
+                await new Promise(function(res) {
+                    video.addEventListener('playing', res, { once: true });
+                });
+
+                if (data.enrolled) {
+                    _storedDescriptor = new Float32Array(JSON.parse(data.descriptor));
+                    setStatus('Vérification en cours...', 'loading');
+                    startDetection();
+                } else {
+                    setStatus('Aucun Face ID enregistré', 'warning');
+                    showBtn('btn-enroll');
+                }
+            } catch(e) {
+                if (e.name === 'NotAllowedError') {
+                    setStatus('Accès caméra refusé — autorisez la caméra et rechargez', 'error');
+                } else {
+                    setStatus('Erreur : ' + e.message, 'error');
+                }
+                showBtn('btn-retry');
+            }
+        }
+
+        function startDetection() {
+            var video  = document.getElementById('face-video');
+            var canvas = document.getElementById('face-canvas');
+            var hits   = 0;
+
+            detectLoop = setInterval(async function() {
+                var det = await faceapi
+                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks(true)
+                    .withFaceDescriptor();
+
+                var ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (!det) {
+                    hits = 0;
+                    setStatus('Aucun visage détecté...', 'loading');
+                    return;
+                }
+
+                var dims = faceapi.matchDimensions(canvas, video, true);
+                faceapi.draw.drawDetections(canvas, [faceapi.resizeResults(det, dims)]);
+
+                var dist = faceapi.euclideanDistance(_storedDescriptor, det.descriptor);
+                var pct  = Math.round((1 - dist) * 100);
+
+                if (dist < THRESHOLD) {
+                    hits++;
+                    setStatus('Correspondance : ' + pct + '%', 'success');
+                    if (hits >= 3) { clearInterval(detectLoop); verified(); }
+                } else {
+                    hits = 0;
+                    setStatus('Visage non reconnu (' + pct + '%)', 'warning');
+                }
+            }, 500);
+        }
+
+        async function enrollFace() {
+            var btn   = document.getElementById('btn-enroll');
+            var video = document.getElementById('face-video');
+            btn.disabled = true;
+            setStatus('Capture en cours... restez immobile', 'loading');
+
+            var descriptors = [];
+            for (var i = 0; i < 3; i++) {
+                var det = await faceapi
+                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks(true)
+                    .withFaceDescriptor();
+                if (det) descriptors.push(det.descriptor);
+                await new Promise(function(r) { setTimeout(r, 300); });
+            }
+
+            if (descriptors.length < 2) {
+                setStatus('Visage introuvable. Assurez-vous d\'être bien éclairé.', 'error');
+                btn.disabled = false;
+                return;
+            }
+
+            var avg = descriptors[0].map(function(_, i) {
+                return descriptors.reduce(function(s, d) { return s + d[i]; }, 0) / descriptors.length;
+            });
+
+            // Save to server DB
+            try {
+                var r = await fetch('/api/face-descriptor', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ descriptor: Array.from(avg) })
+                });
+                if (!r.ok) throw new Error('Erreur serveur');
+            } catch(e) {
+                setStatus('Erreur sauvegarde : ' + e.message, 'error');
+                btn.disabled = false;
+                return;
+            }
+
+            _storedDescriptor = new Float32Array(avg);
+            btn.style.display = 'none';
+            setStatus('Visage enregistré ! Vérification...', 'success');
+            startDetection();
+        }
+
+        function verified() {
+            stopCamera();
+            var el = document.createElement('div');
+            el.id = 'face-success-screen';
+            el.innerHTML = '<div class="chk">&#9989;</div><h3>Identité vérifiée</h3><p>Accès autorisé</p>';
+            document.body.appendChild(el);
+            setTimeout(function() {
+                el.style.transition = 'opacity 0.5s';
+                el.style.opacity = '0';
+                document.getElementById('face-overlay').style.display = 'none';
+                setTimeout(function() { el.remove(); }, 500);
+            }, 1200);
+        }
+
+        function resetFaceData() {
+            if (confirm('Supprimer le Face ID ? Vous serez redirigé vers la configuration.')) {
+                fetch('/api/face-descriptor', { method: 'DELETE', credentials: 'include' })
+                    .then(function() { window.location.href = '/admin/face-setup'; });
+            }
+        }
+
+        function stopCamera() {
+            if (camStream) {
+                camStream.getTracks().forEach(function(t) { t.stop(); });
+                camStream = null;
+            }
+        }
+
+        function setStatus(text, type) {
+            document.getElementById('face-status-text').textContent = text;
+            document.getElementById('status-dot').className = 'status-dot ' + type;
+        }
+
+        function showBtn(id) { document.getElementById(id).style.display = 'inline-block'; }
+
+        initFaceVerification();
+       // document.getElementById('face-overlay').style.display = 'none';
+      </script>
+</body>
+</html>

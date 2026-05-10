@@ -1,0 +1,27 @@
+{
+  "model_type": "K-Means",
+  "n_clusters": 2,
+  "silhouette_score": 0.43549061600250527,
+  "davies_bouldin": 0.923307322152054,
+  "calinski_harabasz": 632.5482827537783,
+  "ari_score": 0.46708264967297675,
+  "nmi_score": 0.5930800888578618,
+  "n_samples": 600,
+  "n_features": 10,
+  "features": [
+    "Anciennete_Annees",
+    "Nb_Presences_Mois",
+    "Nb_Badges_Obtenus",
+    "Cotisation_A_Jour",
+    "Participation_Rate",
+    "Engagement_Score",
+    "Activity_Consistency",
+    "Loyalty_Score",
+    "Progression",
+    "Motivation"
+  ],
+  "segment_map": {
+    "1": "Inactive",
+    "0": "Moderate"
+  }
+}

@@ -1,0 +1,34 @@
+# Full Python dependencies (FastAPI API + Flask gateway + ML/NLP modules)
+
+# Web/API stack
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+starlette>=0.37.0
+pydantic>=2.8.0
+python-multipart>=0.0.9
+
+# Gateway / HTTP
+flask>=3.1.0
+itsdangerous>=2.2.0
+requests>=2.32.0
+python-dotenv>=1.0.0
+
+# Auth
+python-jose[cryptography]>=3.3.0
+cryptography>=42.0.0
+
+# Data / ML
+numpy>=2.0.0
+pandas>=2.2.0
+scipy>=1.13.0
+scikit-learn>=1.5.0
+statsmodels>=0.14.0
+joblib>=1.4.0
+threadpoolctl>=3.5.0
+
+# Voice transcription for Messenger NLP
+faster-whisper>=1.2.0
+
+# Notes:
+# - JS/CDN assets (face-api.js, tfjs, blazeface) are loaded from frontend HTML.
+# - Face model files are downloaded by: .\download_face_models.ps1

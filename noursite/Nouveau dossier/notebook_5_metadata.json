@@ -1,0 +1,20 @@
+{
+  "model_type": "Gradient Boosting",
+  "r2_score": 0.8797278649138238,
+  "rmse": 5.861886435132529,
+  "mae": 4.8758653168562,
+  "features": [
+    "Duree_Jours",
+    "Budget_Individuel",
+    "Budget_Efficiency",
+    "Duration_Scaled",
+    "Activity_Intensity",
+    "Engagement_Factor",
+    "Type_Activite_enc",
+    "Saison_enc",
+    "Unite_enc",
+    "Age_Category_enc"
+  ],
+  "n_samples_training": 480,
+  "n_samples_test": 120
+}

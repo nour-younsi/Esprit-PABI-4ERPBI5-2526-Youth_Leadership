@@ -1,0 +1,1710 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Utilisateur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #e30613;
+  --primary-soft: rgba(227, 6, 19, 0.08);
+  --dark: #111827;
+  --dark-2: #1f2937;
+  --gray: #5f6675;
+  --light: #f5f5f8;
+  --white: #ffffff;
+  --border: #e3e8f1;
+  --shadow: 0 18px 45px rgba(17, 22, 31, 0.10);
+  --shadow-hover: 0 24px 55px rgba(17, 22, 31, 0.16);
+  --font: 'Barlow', Arial, sans-serif;
+  --scout-green: #1f7a4d;
+  --scout-gold: #f4b63f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background:
+    radial-gradient(circle at top left, rgba(227, 6, 19, 0.10), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(31, 122, 77, 0.08), transparent 34%),
+    linear-gradient(180deg, #f8f9fc 0%, #eef1f6 100%);
+  color: var(--dark);
+  overflow-x: hidden;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 18px auto;
+  padding: 0 18px 34px;
+  animation: pageFadeIn 0.7s ease both;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   HEADER FINAL PROPRE
+========================= */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%) !important;
+  color: #ffffff !important;
+  padding: 34px 36px !important;
+  border-top: 6px solid var(--primary);
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 24px 60px rgba(17, 24, 39, 0.25);
+}
+
+.hero::before,
+.hero::after {
+  display: none !important;
+  content: none !important;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 800;
+  color: #ffffff !important;
+  animation: slideFromLeft 0.7s ease both;
+}
+
+.hero h1::after {
+  content: " 🇹🇳";
+}
+
+p.muted {
+  color: #d1d5db !important;
+  margin: 8px 0 0;
+  font-size: 0.98rem;
+  animation: slideFromLeft 0.85s ease both;
+}
+
+.hero strong {
+  color: #ffffff !important;
+  margin-left: 4px;
+}
+
+@keyframes slideFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.error {
+  color: #ffd1d1;
+  margin-top: 14px;
+  font-weight: 600;
+}
+
+/* =========================
+   BOUTONS
+========================= */
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.hero .actions {
+  margin-top: 14px;
+}
+
+a.btn,
+button.btn,
+.compose-line button,
+.messenger-admin-actions button {
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  background: var(--dark);
+  color: #fff;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 800;
+  transition: 0.2s ease;
+}
+
+a.btn:hover,
+button.btn:hover,
+.compose-line button:hover,
+.messenger-admin-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(17, 22, 31, 0.16);
+}
+
+a.btn::after,
+button.btn::after,
+.compose-line button::after,
+.messenger-admin-actions button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.18);
+  transform: translateX(-100%);
+  transition: transform 0.35s ease;
+}
+
+a.btn:hover::after,
+button.btn:hover::after,
+.compose-line button:hover::after,
+.messenger-admin-actions button:hover::after {
+  transform: translateX(0);
+}
+
+a.btn.light,
+button.btn.light {
+  background: #fff;
+  color: var(--dark);
+}
+
+a.btn.light:hover,
+button.btn.light:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+a.btn.red,
+button.btn.red {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* =========================
+   GRID + CARTES
+========================= */
+
+.grid {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  border-top: 4px solid var(--primary);
+  border-radius: 16px;
+  animation: cardUp 0.65s ease both;
+  transition: 0.25s ease;
+}
+
+.card:nth-child(1) {
+  animation-delay: 0.08s;
+}
+
+.card:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.card:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+.card:nth-child(4) {
+  animation-delay: 0.32s;
+}
+
+@keyframes cardUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(227, 6, 19, 0.08),
+    transparent
+  );
+  transform: skewX(-18deg);
+  transition: left 0.8s ease;
+  pointer-events: none;
+}
+
+.card:hover::before {
+  left: 120%;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.card h2 {
+  margin: 0 0 16px;
+  text-transform: uppercase;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  color: var(--dark);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.card h2::before {
+  content: "⚜ ";
+  color: var(--primary);
+}
+
+/* =========================
+   STAT
+========================= */
+
+.stat {
+  font-size: 2.9rem;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--primary);
+  animation: pulseStat 2.2s ease-in-out infinite;
+}
+
+@keyframes pulseStat {
+  0%, 100% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+  50% {
+    transform: scale(1.08);
+    text-shadow: 0 8px 20px rgba(227, 6, 19, 0.25);
+  }
+}
+
+.stat-label {
+  color: var(--gray);
+  font-size: 0.95rem;
+  margin-top: 8px;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.empty {
+  color: var(--gray);
+  padding: 18px;
+  background: linear-gradient(135deg, #ffffff, #f7f9fd);
+  border: 1px dashed #cfd6e3;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* =========================
+   NOTIFICATIONS
+========================= */
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notif {
+  border-left: 5px solid var(--primary);
+  background: #fff7f8;
+  padding: 14px 16px;
+  border-radius: 12px;
+  transition: 0.2s ease;
+  animation: notifIn 0.45s ease both;
+}
+
+.notif:nth-child(1) { animation-delay: 0.06s; }
+.notif:nth-child(2) { animation-delay: 0.12s; }
+.notif:nth-child(3) { animation-delay: 0.18s; }
+.notif:nth-child(4) { animation-delay: 0.24s; }
+
+@keyframes notifIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.notif:hover {
+  transform: translateX(3px);
+  background: #fff0f2;
+  border-left-width: 7px;
+  box-shadow: 0 10px 24px rgba(17, 22, 31, 0.08);
+}
+
+.notif.read {
+  border-left-color: #b7bfcc;
+  background: #f9fafc;
+}
+
+.notif-title {
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: var(--dark);
+}
+
+.notif-meta {
+  color: #6a7280;
+  font-size: 0.84rem;
+  margin-bottom: 6px;
+}
+
+.notif-message {
+  color: #212838;
+  line-height: 1.5;
+}
+
+/* =========================
+   FAVORIS
+========================= */
+
+.fav-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.fav-item {
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: 0.2s ease;
+}
+
+.fav-item::after {
+  content: "⚜";
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  color: rgba(227, 6, 19, 0.16);
+  font-size: 2.2rem;
+  transition: 0.25s ease;
+}
+
+.fav-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(17, 22, 31, 0.10);
+  border-color: rgba(227, 6, 19, 0.25);
+}
+
+.fav-item:hover::after {
+  color: rgba(227, 6, 19, 0.35);
+  transform: rotate(12deg) scale(1.15);
+}
+
+.fav-title {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: var(--dark);
+  font-weight: 800;
+}
+
+.fav-meta {
+  font-size: 0.84rem;
+  color: var(--gray);
+  margin-bottom: 8px;
+}
+
+.fav-desc {
+  font-size: 0.92rem;
+  color: #30384a;
+  line-height: 1.5;
+}
+
+.fav-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--primary);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.fav-link:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   MESSENGER
+========================= */
+
+.messenger-status {
+  margin: 10px 0 14px;
+  color: #2a3346;
+}
+
+.messenger-badge {
+  display: inline-block;
+  padding: 5px 11px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-radius: 999px;
+  margin-right: 8px;
+  animation: badgePop 0.45s ease both;
+}
+
+@keyframes badgePop {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.messenger-badge.pending {
+  background: #fff1d9;
+  color: #8c5a00;
+}
+
+.messenger-badge.approved {
+  background: #e8f8ee;
+  color: #1f6f3e;
+}
+
+.messenger-badge.rejected {
+  background: #ffe6ea;
+  color: #a71d2a;
+}
+
+.messenger-badge.none {
+  background: #edf1f7;
+  color: #58637a;
+}
+
+.messenger-chat {
+  position: relative;
+  border: 1px solid var(--border);
+  background: #fafbfd;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.messenger-messages {
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: linear-gradient(180deg, #fafbfd, #f3f6fb);
+}
+
+.msg-item {
+  max-width: 86%;
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 14px 14px 14px 3px;
+  box-shadow: 0 8px 18px rgba(17, 22, 31, 0.06);
+  animation: messagePop 0.35s ease both;
+  margin-bottom: 10px;
+}
+
+.msg-item.mine {
+  align-self: flex-end;
+  border-color: rgba(227, 6, 19, 0.25);
+  background: #fff2f4;
+  border-radius: 14px 14px 3px 14px;
+}
+
+@keyframes messagePop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.msg-meta {
+  font-size: 0.78rem;
+  color: #667188;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.msg-text {
+  color: #1d2536;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.msg-audio {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.msg-tools {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.msg-tools button {
+  border: 1px solid #ccd2de;
+  background: #fff;
+  color: #2c3447;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: var(--font);
+  font-weight: 700;
+}
+
+/* =========================
+   COMPOSE MESSENGER
+========================= */
+
+.messenger-compose {
+  border-top: 1px solid var(--border);
+  padding: 12px;
+  background: #fff;
+  display: grid;
+  gap: 8px;
+}
+
+.compose-line {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.compose-line input {
+  flex: 1;
+  min-width: 220px;
+  border: 1px solid #ccd2de;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  font-family: var(--font);
+  border-radius: 8px;
+  transition: 0.25s ease;
+}
+
+.compose-line input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(227, 6, 19, 0.10);
+}
+
+.compose-line button.red {
+  background: var(--primary);
+}
+
+.compose-line button.light {
+  background: #eef2f8;
+  color: #212838;
+  border: 1px solid #d2d9e6;
+}
+
+.compose-line button.recording {
+  background: var(--primary);
+}
+
+/* =========================
+   ADMIN MESSENGER
+========================= */
+
+.messenger-admin-requests {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.messenger-admin-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid #edf1f7;
+}
+
+.messenger-admin-row:last-child {
+  border-bottom: none;
+}
+
+.messenger-admin-user {
+  font-weight: 800;
+  color: var(--dark);
+}
+
+.messenger-admin-meta {
+  color: #606a7f;
+  font-size: 0.83rem;
+  margin-top: 4px;
+}
+
+.messenger-admin-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.messenger-admin-actions .approve {
+  background: #2e7d32;
+}
+
+.messenger-admin-actions .reject {
+  background: #c62828;
+}
+
+/* =========================
+   POPUP
+========================= */
+
+.popup-overlay,
+.antispy-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.popup-overlay {
+  background: rgba(17, 22, 31, 0.56);
+  z-index: 1200;
+}
+
+.popup-overlay.open {
+  display: flex;
+}
+
+.popup-card {
+  width: min(520px, 100%);
+  background: #fff;
+  border-top: 4px solid var(--primary);
+  box-shadow: 0 24px 48px rgba(17, 22, 31, 0.25);
+  padding: 22px;
+  border-radius: 16px;
+  animation: modalZoom 0.35s ease both;
+}
+
+.popup-card h3 {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  font-size: 1rem;
+}
+
+.popup-card p {
+  margin: 0 0 14px;
+  color: #2a3346;
+  line-height: 1.5;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@keyframes modalZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* =========================
+   ANTI-SPY
+========================= */
+
+.antispy-indicator {
+  display: none;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  background: #f4f7fb;
+  align-items: center;
+  gap: 8px;
+}
+
+.antispy-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #bbb;
+  display: inline-block;
+  flex-shrink: 0;
+  transition: background 0.4s;
+}
+
+.chat-blurred .messenger-messages {
+  filter: blur(10px);
+  pointer-events: none;
+  user-select: none;
+  transition: filter 0.3s;
+}
+
+.chat-blur-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.chat-blurred .chat-blur-overlay {
+  display: flex;
+}
+
+.chat-blur-msg {
+  background: rgba(20, 30, 55, 0.82);
+  color: #fff;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-align: center;
+  max-width: 80%;
+}
+
+.antispy-advanced-badge {
+  background: linear-gradient(135deg, #1a7f4f, #27c168);
+  color: #fff;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+  display: none;
+}
+
+.antispy-modal-overlay {
+  background: rgba(0, 0, 0, 0.72);
+  z-index: 9990;
+}
+
+.antispy-modal-box {
+  background: #fff;
+  border-top: 5px solid var(--primary);
+  padding: 32px 28px;
+  max-width: 460px;
+  width: 92%;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  border-radius: 16px;
+  animation: modalZoom 0.35s ease both;
+}
+
+.antispy-modal-icon {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+}
+
+.antispy-modal-box h3 {
+  margin: 0 0 10px;
+  color: #1a2340;
+  font-size: 1.15rem;
+}
+
+.antispy-modal-box p {
+  color: #58637a;
+  line-height: 1.6;
+  margin: 0 0 10px;
+  font-size: 0.93rem;
+}
+
+.antispy-features {
+  background: #f3f7f1;
+  border-left: 4px solid var(--scout-green);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  text-align: left;
+  font-size: 0.84rem;
+  color: #3a4a6b;
+}
+
+.antispy-features div {
+  margin-bottom: 5px;
+}
+
+.antispy-accept,
+.antispy-dismiss {
+  border: none;
+  padding: 11px 20px;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 800;
+  border-radius: 10px;
+}
+
+.antispy-accept {
+  background: var(--scout-green);
+  color: #fff;
+}
+
+.antispy-dismiss {
+  background: #edf1f7;
+  color: #58637a;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 800px) {
+  .wrap {
+    margin: 12px auto;
+    padding: 0 12px 24px;
+  }
+
+  .hero {
+    padding: 24px !important;
+    border-radius: 0 0 18px 18px;
+  }
+
+  h1 {
+    font-size: 1.35rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions .btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .msg-item {
+    max-width: 100%;
+  }
+
+  .messenger-admin-row {
+    grid-template-columns: 1fr;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .compose-line {
+    flex-direction: column;
+  }
+
+  .compose-line input,
+  .compose-line button {
+    width: 100%;
+  }
+
+  .fav-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+</style>
+
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="top">
+        <div>
+          <h1>Tableau de bord utilisateur</h1>
+          <p class="muted">Connecté en tant que<strong>{{ username }}</strong> ({{ role }}).</p>
+        </div>
+  <div class="actions">
+  {% if role in ['admin', 'superadmin', 'logistique'] %}
+    <a class="btn light" href="/chatbot">Chatbot Admin</a>
+    <a class="btn light" href="/events">Gestion Evenements</a>
+  {% endif %}
+
+  <a class="btn light" href="/admin/bi-dashboard">Dashboard BI</a>
+  <a class="btn light" href="/front/events-front.html">Mes evenements</a>
+  <a class="btn light" href="/front/">Accueil</a>
+  <a class="btn red" href="/logout">Se deconnecter</a>
+</div>
+</div>
+
+{% if api_error %}
+  <p class="error">{{ api_error }}</p>
+{% endif %}
+</div>
+    <div class="grid">
+      <div class="card">
+        <div class="stat">{{ unread_count }}</div>
+        <div class="stat-label">Notifications non lues</div>
+        <form method="post" action="/dashboard/read-all" style="margin-top:14px;">
+          <button class="btn" type="submit">Marquer tout comme lu</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0; text-transform:uppercase; font-size:1rem; letter-spacing:0.04em;">Mes notifications</h2>
+        {% if notifications %}
+          <div class="notif-list">
+            {% for item in notifications %}
+              <div class="notif {% if item.is_read %}read{% endif %}">
+                <div class="notif-title">{{ item.title }}</div>
+                <div class="notif-meta">{{ item.created_at }}{% if item.actor_username %} · Par {{ item.actor_username }}{% endif %}</div>
+                <div class="notif-message">{{ item.message }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">Aucune notification pour le moment.</div>
+        {% endif %}
+      </div>
+
+      <div class="card" style="grid-column: 1 / -1;">
+        <h2 style="margin-top:0; text-transform:uppercase; font-size:1rem; letter-spacing:0.04em;">Mes evenements favoris</h2>
+        {% if favorites %}
+          <div class="fav-list">
+            {% for item in favorites %}
+              <article class="fav-item">
+                <h3 class="fav-title">{{ item.title }}</h3>
+                <div class="fav-meta">Ajoute aux favoris: {{ item.favorited_at }}{% if item.event_date %} · Date: {{ item.event_date }}{% endif %}{% if item.location %} · Lieu: {{ item.location }}{% endif %}</div>
+                <div class="fav-desc">{{ item.description or 'Pas de description.' }}</div>
+                <a class="fav-link" href="/front/events-front.html">Voir dans les evenements</a>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">Aucun evenement favori pour le moment.</div>
+        {% endif %}
+      </div>
+
+      <div class="card" style="grid-column: 1 / -1;">
+        <h2 style="margin-top:0; text-transform:uppercase; font-size:1rem; letter-spacing:0.04em;">Messenger Groupe</h2>
+        <div id="messenger-status" class="messenger-status"></div>
+
+        <div id="messenger-request-actions" class="actions" style="margin-bottom:12px; display:flex;">
+          <button id="messenger-request-btn" class="btn" type="button">Demander l'acces a l'admin</button>
+        </div>
+
+        <div id="messenger-chat" class="messenger-chat" style="display:none;">
+          <div id="antispy-indicator" class="antispy-indicator">
+            <span id="antispy-dot" class="antispy-dot"></span>
+            <span id="antispy-label">Anti-Spy actif</span>
+          </div>
+          <div id="antispy-advanced-badge" class="antispy-advanced-badge">🔓 Mode attention confirmée — Historique complet accessible</div>
+          <div class="chat-blur-overlay"><div class="chat-blur-msg">👁️ Regardez l'écran pour accéder aux messages</div></div>
+          <div id="messenger-messages" class="messenger-messages"></div>
+          <div class="messenger-compose">
+            <div class="compose-line">
+              <input id="messenger-text" type="text" maxlength="2000" placeholder="Ecrire un message groupe...">
+            </div>
+            <div class="compose-line">
+              <button id="messenger-stt-btn" class="light" type="button">Dicter</button>
+              <button id="messenger-send-text" type="button">Envoyer texte</button>
+              <button id="messenger-record-audio" class="red" type="button">Enregistrer vocal</button>
+            </div>
+          </div>
+        </div>
+
+        {% if role in ['admin', 'superadmin', 'logistique'] %}
+          <div class="messenger-admin-requests">
+            <div style="padding:10px; border-bottom:1px solid #edf1f7; display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap;">
+              <strong>Demandes d'acces (Admin)</strong>
+              <button id="messenger-refresh-requests" class="btn" type="button">Actualiser</button>
+            </div>
+            <div id="messenger-admin-requests-list" style="padding:10px;"></div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div id="notif-popup" class="popup-overlay" aria-hidden="true">
+    <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="notif-popup-title">
+      <h3 id="notif-popup-title">Rappel evenement</h3>
+      <p id="notif-popup-message"></p>
+      <div class="popup-actions">
+        <button id="notif-popup-next" class="btn" type="button">Suivant</button>
+        <button id="notif-popup-close" class="btn red" type="button">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Anti-Spy Modal (must be BEFORE the script tag so getElementById works) -->
+  <div id="antispy-modal" class="antispy-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="antispy-modal-title">
+    <div class="antispy-modal-box">
+      <div class="antispy-modal-icon">🔒</div>
+      <h3 id="antispy-modal-title">Protection Vie Privée</h3>
+      <p>Cette discussion est <strong>100&nbsp;% privée</strong> — personne en dehors du groupe ne peut voir vos messages.</p>
+      <p>Activez <strong>Anti-Spy</strong> pour protéger votre écran en temps réel grâce à la détection d'attention :</p>
+      <div class="antispy-features">
+        <div>👁️ <strong>Yeux qui décrochent</strong> → pause automatique</div>
+        <div>↔️ <strong>Regard ailleurs</strong> → contenu flouté</div>
+        <div>✅ <strong>Attention forte</strong> → contenu avancé débloqué</div>
+      </div>
+      <div class="antispy-modal-actions">
+        <button id="antispy-accept-btn" class="antispy-accept">✅ Activer Anti-Spy</button>
+        <button id="antispy-dismiss-btn" class="antispy-dismiss">Non merci</button>
+      </div>
+    </div>
+  </div>
+  <!-- Hidden video for face detection -->
+  <video id="antispy-hidden-video" autoplay muted playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></video>
+
+  <script>
+    const currentRole = {{ role | tojson }};
+    const reminderPopups = [
+      {% for item in notifications %}
+        {% if (not item.is_read) and item.notification_type == 'event_reminder' %}
+          { id: {{ item.id }}, title: {{ item.title | tojson }}, message: {{ item.message | tojson }} },
+        {% endif %}
+      {% endfor %}
+    ];
+
+    (function showReminderPopups() {
+      if (!reminderPopups.length) return;
+      const storageKey = 'shownReminderNotificationIds';
+      let shownIds = [];
+      try {
+        shownIds = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
+      } catch {
+        shownIds = [];
+      }
+
+      const queue = reminderPopups.filter((item) => !shownIds.includes(item.id));
+      if (!queue.length) return;
+
+      const overlay = document.getElementById('notif-popup');
+      const titleEl = document.getElementById('notif-popup-title');
+      const messageEl = document.getElementById('notif-popup-message');
+      const nextBtn = document.getElementById('notif-popup-next');
+      const closeBtn = document.getElementById('notif-popup-close');
+
+      let idx = 0;
+      function renderCurrent() {
+        const item = queue[idx];
+        if (!item) return;
+        titleEl.textContent = item.title || 'Rappel evenement';
+        messageEl.textContent = item.message || '';
+        nextBtn.style.display = idx < queue.length - 1 ? 'inline-block' : 'none';
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden', 'false');
+      }
+
+      function closePopup() {
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden', 'true');
+        const idsToStore = [...new Set([...shownIds, ...queue.map((item) => item.id)])];
+        sessionStorage.setItem(storageKey, JSON.stringify(idsToStore));
+      }
+
+      nextBtn.addEventListener('click', () => {
+        idx += 1;
+        if (idx >= queue.length) {
+          closePopup();
+          return;
+        }
+        renderCurrent();
+      });
+
+      closeBtn.addEventListener('click', closePopup);
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) closePopup();
+      });
+
+      renderCurrent();
+    })();
+
+    async function apiJson(url, options) {
+      const response = await fetch(url, options || {});
+      let payload = {};
+      try {
+        payload = await response.json();
+      } catch {
+        payload = {};
+      }
+      if (!response.ok) {
+        const detail = payload && payload.detail ? payload.detail : ('Erreur API (' + response.status + ')');
+        throw new Error(detail);
+      }
+      return payload;
+    }
+
+    function escHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    const messengerEls = {
+      status: document.getElementById('messenger-status'),
+      requestWrap: document.getElementById('messenger-request-actions'),
+      requestBtn: document.getElementById('messenger-request-btn'),
+      chat: document.getElementById('messenger-chat'),
+      messages: document.getElementById('messenger-messages'),
+      text: document.getElementById('messenger-text'),
+      sendText: document.getElementById('messenger-send-text'),
+      sttBtn: document.getElementById('messenger-stt-btn'),
+      recordBtn: document.getElementById('messenger-record-audio'),
+      adminList: document.getElementById('messenger-admin-requests-list'),
+      adminRefresh: document.getElementById('messenger-refresh-requests')
+    };
+
+    let messengerPollTimer = null;
+    let mediaRecorder = null;
+    let mediaChunks = [];
+    let speechRecognition = null;
+    let speakingBtn = null;
+
+    function updateMessengerStatusBadge(status, note) {
+      const map = {
+        not_requested: { label: 'Aucune demande', cls: 'none', text: 'Vous devez demander l\'acces admin pour rejoindre le groupe.' },
+        pending: { label: 'En attente', cls: 'pending', text: 'Demande envoyee. En attente de validation admin.' },
+        approved: { label: 'Approuve', cls: 'approved', text: 'Acces Messenger actif. Vous pouvez envoyer des messages texte et vocaux.' },
+        rejected: { label: 'Refuse', cls: 'rejected', text: 'Demande refusee. Vous pouvez renvoyer une demande.' }
+      };
+      const item = map[status] || map.not_requested;
+      const noteHtml = note ? '<div class="messenger-admin-meta">Note admin: ' + escHtml(note) + '</div>' : '';
+      messengerEls.status.innerHTML = '<span class="messenger-badge ' + item.cls + '">' + item.label + '</span> <span>' + item.text + '</span>' + noteHtml;
+    }
+
+    async function loadMessengerStatus() {
+      const statusData = await apiJson('/api/messenger/access-status');
+      updateMessengerStatusBadge(statusData.status, statusData.review_note || '');
+
+     const canChat = !!statusData.can_chat || currentRole === 'admin' || currentRole === 'superadmin' || currentRole === 'logistique';
+      const canRequest = !!statusData.can_request || statusData.status === 'not_requested';
+
+      messengerEls.chat.style.display = canChat ? 'block' : 'none';
+      messengerEls.requestWrap.style.display = canChat ? 'none' : (canRequest ? 'flex' : 'none');
+
+      if (!canChat && messengerPollTimer) {
+        clearInterval(messengerPollTimer);
+        messengerPollTimer = null;
+      }
+      return canChat;
+    }
+
+    function startMessengerChat() {
+      loadMessengerMessages();
+      if (!messengerPollTimer) {
+        messengerPollTimer = setInterval(loadMessengerMessages, 5000);
+      }
+    }
+
+    async function requestMessengerAccess() {
+      messengerEls.requestBtn.disabled = true;
+      try {
+        await apiJson('/api/messenger/access-request', { method: 'POST' });
+        await loadMessengerStatus();
+        alert('Demande envoyee a l\'admin.');
+      } catch (error) {
+        alert(error.message || 'Impossible d\'envoyer la demande.');
+      } finally {
+        messengerEls.requestBtn.disabled = false;
+      }
+    }
+
+    function renderMessengerMessages(messages) {
+      if (!messages.length) {
+        messengerEls.messages.innerHTML = '<div class="empty">Aucun message pour le moment.</div>';
+        return;
+      }
+
+      messengerEls.messages.innerHTML = messages.map(function(item) {
+        const textHtml = item.message_text
+          ? '<div class="msg-text">' + escHtml(item.message_text) + '</div>'
+          : '';
+        const audioHtml = item.audio_url
+          ? '<audio class="msg-audio" controls preload="none" src="' + escHtml(item.audio_url) + '"></audio>'
+          : '';
+        const ttsBtn = item.message_text
+          ? '<button type="button" data-tts-text="' + escHtml(item.message_text) + '">Lire</button>'
+          : '';
+        return [
+          '<div class="msg-item ' + (item.is_mine ? 'mine' : '') + '">',
+          '<div class="msg-meta">' + escHtml(item.username || 'Utilisateur') + ' · ' + escHtml(item.created_at || '') + '</div>',
+          textHtml,
+          audioHtml,
+          '<div class="msg-tools">' + ttsBtn + '</div>',
+          '</div>'
+        ].join('');
+      }).join('');
+      messengerEls.messages.scrollTop = messengerEls.messages.scrollHeight;
+    }
+
+    async function loadMessengerMessages() {
+      try {
+        const data = await apiJson('/api/messenger/messages?limit=100');
+        renderMessengerMessages(data.messages || []);
+      } catch (error) {
+        if (messengerEls.messages) {
+          messengerEls.messages.innerHTML = '<div class="empty">' + escHtml(error.message || 'Erreur') + '</div>';
+        }
+      }
+    }
+
+    async function sendTextMessage() {
+      const text = (messengerEls.text.value || '').trim();
+      if (!text) return;
+      messengerEls.sendText.disabled = true;
+      try {
+        await apiJson('/api/messenger/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text })
+        });
+        messengerEls.text.value = '';
+        await loadMessengerMessages();
+      } catch (error) {
+        alert(error.message || 'Erreur envoi message');
+      } finally {
+        messengerEls.sendText.disabled = false;
+      }
+    }
+
+    async function sendAudioMessage(dataUrl) {
+      await apiJson('/api/messenger/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audio_data_url: dataUrl })
+      });
+      await loadMessengerMessages();
+    }
+
+    async function toggleRecordAudio() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        return;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Enregistrement audio non supporte sur ce navigateur.');
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = function(event) {
+          if (event.data && event.data.size > 0) mediaChunks.push(event.data);
+        };
+        mediaRecorder.onstop = function() {
+          const blob = new Blob(mediaChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+          const reader = new FileReader();
+          reader.onloadend = async function() {
+            try {
+              await sendAudioMessage(String(reader.result || ''));
+            } catch (error) {
+              alert(error.message || 'Erreur envoi vocal');
+            }
+          };
+          reader.readAsDataURL(blob);
+          stream.getTracks().forEach(function(track) { track.stop(); });
+          messengerEls.recordBtn.textContent = 'Enregistrer vocal';
+          messengerEls.recordBtn.classList.remove('recording');
+        };
+        mediaRecorder.start();
+        messengerEls.recordBtn.textContent = 'Arreter et envoyer';
+        messengerEls.recordBtn.classList.add('recording');
+      } catch {
+        alert('Impossible d\'acceder au microphone.');
+      }
+    }
+
+    function toggleSTT() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('Speech-to-Text non supporte sur ce navigateur.');
+        return;
+      }
+      if (speechRecognition) {
+        speechRecognition.stop();
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      speechRecognition = recognition;
+      recognition.lang = 'fr-FR';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      messengerEls.sttBtn.textContent = 'Arreter diction';
+      messengerEls.sttBtn.classList.add('recording');
+
+      recognition.onresult = function(event) {
+        const transcript = event.results && event.results[0] && event.results[0][0]
+          ? String(event.results[0][0].transcript || '')
+          : '';
+        const existing = messengerEls.text.value.trim();
+        messengerEls.text.value = existing ? (existing + ' ' + transcript) : transcript;
+      };
+      recognition.onend = function() {
+        messengerEls.sttBtn.textContent = 'Dicter';
+        messengerEls.sttBtn.classList.remove('recording');
+        speechRecognition = null;
+      };
+      recognition.onerror = recognition.onend;
+      recognition.start();
+    }
+
+    function speakMessage(btn, text) {
+      if (!window.speechSynthesis) return;
+      if (speakingBtn === btn) {
+        window.speechSynthesis.cancel();
+        btn.textContent = 'Lire';
+        speakingBtn = null;
+        return;
+      }
+      window.speechSynthesis.cancel();
+      if (speakingBtn) speakingBtn.textContent = 'Lire';
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fr-FR';
+      speakingBtn = btn;
+      btn.textContent = 'Arreter';
+      utterance.onend = function() {
+        if (speakingBtn === btn) {
+          btn.textContent = 'Lire';
+          speakingBtn = null;
+        }
+      };
+      utterance.onerror = utterance.onend;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    async function loadMessengerAdminRequests() {
+      if (!(currentRole === 'admin' || currentRole === 'superadmin' || currentRole === 'logistique') || !messengerEls.adminList) return;
+      try {
+        const data = await apiJson('/api/messenger/requests');
+        const requests = data.requests || [];
+        if (!requests.length) {
+          messengerEls.adminList.innerHTML = '<div class="empty">Aucune demande Messenger.</div>';
+          return;
+        }
+        messengerEls.adminList.innerHTML = requests.map(function(item) {
+          const status = escHtml(item.status || 'pending');
+          const note = item.review_note ? (' · Note: ' + escHtml(item.review_note)) : '';
+          const reviewMeta = item.reviewed_by_username
+            ? (' · Traite par ' + escHtml(item.reviewed_by_username) + ' (' + escHtml(item.reviewed_at || '') + ')')
+            : '';
+          const actions = item.status === 'pending'
+            ? '<div class="messenger-admin-actions"><button class="approve" data-review-user="' + item.user_id + '" data-review-action="approve">Approuver</button><button class="reject" data-review-user="' + item.user_id + '" data-review-action="reject">Refuser</button></div>'
+            : '<div class="messenger-admin-meta">Aucune action</div>';
+          return [
+            '<div class="messenger-admin-row">',
+            '<div>',
+            '<div class="messenger-admin-user">' + escHtml(item.username || 'Utilisateur') + ' (' + escHtml(item.email || '') + ')</div>',
+            '<div class="messenger-admin-meta">Statut: ' + status + ' · Demande: ' + escHtml(item.requested_at || '') + note + reviewMeta + '</div>',
+            '</div>',
+            actions,
+            '</div>'
+          ].join('');
+        }).join('');
+      } catch (error) {
+        messengerEls.adminList.innerHTML = '<div class="empty">' + escHtml(error.message || 'Erreur') + '</div>';
+      }
+    }
+
+    async function reviewMessengerRequest(userId, action) {
+      const note = action === 'reject'
+        ? (prompt('Motif du refus (optionnel):', '') || '')
+        : '';
+      try {
+        await apiJson('/api/messenger/requests/' + userId + '/review', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action, note: note })
+        });
+        await loadMessengerAdminRequests();
+      } catch (error) {
+        alert(error.message || 'Erreur de validation admin');
+      }
+    }
+
+    document.addEventListener('click', function(event) {
+      const ttsBtn = event.target.closest('[data-tts-text]');
+      if (ttsBtn) {
+        speakMessage(ttsBtn, String(ttsBtn.dataset.ttsText || ''));
+        return;
+      }
+
+      const reviewBtn = event.target.closest('[data-review-user][data-review-action]');
+      if (reviewBtn) {
+        reviewMessengerRequest(reviewBtn.dataset.reviewUser, reviewBtn.dataset.reviewAction);
+      }
+    });
+
+    if (messengerEls.requestBtn) {
+      messengerEls.requestBtn.addEventListener('click', requestMessengerAccess);
+    }
+    if (messengerEls.sendText) {
+      messengerEls.sendText.addEventListener('click', sendTextMessage);
+    }
+    if (messengerEls.text) {
+      messengerEls.text.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          sendTextMessage();
+        }
+      });
+    }
+    if (messengerEls.recordBtn) {
+      messengerEls.recordBtn.addEventListener('click', toggleRecordAudio);
+    }
+    if (messengerEls.sttBtn) {
+      messengerEls.sttBtn.addEventListener('click', toggleSTT);
+    }
+    if (messengerEls.adminRefresh) {
+      messengerEls.adminRefresh.addEventListener('click', loadMessengerAdminRequests);
+    }
+
+    (async function initMessenger() {
+      try {
+        const canChat = await loadMessengerStatus();
+        if (canChat) _checkAntiSpyOnOpen();
+      } catch (error) {
+        updateMessengerStatusBadge('not_requested', '');
+        if (messengerEls.requestWrap) messengerEls.requestWrap.style.display = 'flex';
+      }
+    })();
+    loadMessengerAdminRequests();
+
+    // ============================================================
+    // ANTI-SPY — ATTENTION DETECTION
+    // ============================================================
+    const ANTISPY_KEY = 'messengerAntiSpyAccepted_' + {{ username | tojson }};
+    const _antiSpyStore = sessionStorage;  // per-session: clears on logout/tab close
+    let antiSpyActive = false;
+    let antiSpyVideoStream = null;
+    let antiSpyFaceDetector = null;
+    let antiSpyCheckInterval = null;
+    let _attentionState = 'unknown';
+
+    const antiSpyModal     = document.getElementById('antispy-modal');
+    const antiSpyIndicator = document.getElementById('antispy-indicator');
+    const antiSpyDot       = document.getElementById('antispy-dot');
+    const antiSpyLabelEl   = document.getElementById('antispy-label');
+    const antiSpyAdvBadge  = document.getElementById('antispy-advanced-badge');
+    const antiSpyVideo     = document.getElementById('antispy-hidden-video');
+
+    function showAntiSpyModal() { if (antiSpyModal) antiSpyModal.style.display = 'flex'; }
+    function hideAntiSpyModal() { if (antiSpyModal) antiSpyModal.style.display = 'none'; }
+
+    function setAttentionState(state) {
+      if (_attentionState === state) return;
+      _attentionState = state;
+      _applyAttentionUI(state);
+    }
+
+    function _applyAttentionUI(state) {
+      if (!antiSpyActive) return;
+      const chat = messengerEls.chat;
+      if (!chat) return;
+
+      const dotColors = { focused: '#2ecc71', away: '#e74c3c', hidden: '#e67e22', unknown: '#95a5a6' };
+      const labels = {
+        focused: '✅ Attention confirmée — contenu avancé actif',
+        away:    '⚠️ Regard ailleurs — contenu protégé',
+        hidden:  '⏸️ Onglet caché — pause automatique',
+        unknown: '🔍 Détection en cours...'
+      };
+      if (antiSpyDot)    antiSpyDot.style.background = dotColors[state] || '#bbb';
+      if (antiSpyLabelEl) antiSpyLabelEl.textContent = labels[state] || '';
+
+      if (state === 'away' || state === 'hidden') {
+        chat.classList.add('chat-blurred');
+        if (antiSpyAdvBadge) antiSpyAdvBadge.style.display = 'none';
+        if (messengerPollTimer) { clearInterval(messengerPollTimer); messengerPollTimer = null; }
+      } else if (state === 'focused') {
+        chat.classList.remove('chat-blurred');
+        if (antiSpyAdvBadge) antiSpyAdvBadge.style.display = 'block';
+        if (!messengerPollTimer) messengerPollTimer = setInterval(loadMessengerMessages, 5000);
+      } else {
+        chat.classList.remove('chat-blurred');
+      }
+    }
+
+    function _handleVisibilityChange() {
+      if (!antiSpyActive) return;
+      setAttentionState(document.hidden ? 'hidden' : (antiSpyFaceDetector ? 'unknown' : 'focused'));
+    }
+    function _handleWindowBlur()  { if (antiSpyActive) setAttentionState('hidden'); }
+    function _handleWindowFocus() { if (antiSpyActive && !antiSpyFaceDetector) setAttentionState('focused'); }
+
+    async function startFaceDetectionEngine() {
+      // Load TF.js + BlazeFace dynamically
+      if (!window.tf) {
+        await new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js';
+          s.onload = resolve; s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+      if (!window.blazeface) {
+        await new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js';
+          s.onload = resolve; s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+      const model = await blazeface.load();
+      antiSpyFaceDetector = model;
+
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, facingMode: 'user' } });
+      antiSpyVideoStream = stream;
+      if (antiSpyVideo) {
+        antiSpyVideo.srcObject = stream;
+        await new Promise(function(res) { antiSpyVideo.onloadedmetadata = res; });
+        await antiSpyVideo.play();
+      }
+      setAttentionState('focused'); // initial optimistic state while model warms up
+      antiSpyCheckInterval = setInterval(async function() {
+        if (document.hidden || !antiSpyVideo || antiSpyVideo.readyState < 2) return;
+        try {
+          const predictions = await antiSpyFaceDetector.estimateFaces(antiSpyVideo, false);
+          if (!predictions.length) {
+            setAttentionState('away');
+          } else {
+            // topLeft/bottomRight are [x,y] arrays
+            const p = predictions[0];
+            const w = (p.bottomRight[0] - p.topLeft[0]);
+            const h = (p.bottomRight[1] - p.topLeft[1]);
+            const ratio = (w * h) / ((antiSpyVideo.videoWidth || 320) * (antiSpyVideo.videoHeight || 240));
+            setAttentionState(ratio > 0.03 ? 'focused' : 'away');
+          }
+        } catch(e) { /* detection hiccup */ }
+      }, 1200);
+    }
+
+    function startFallbackTracking() {
+      let mouseIn = true;
+      document.addEventListener('mouseleave', function() { mouseIn = false; if (antiSpyActive && !document.hidden) setAttentionState('away'); });
+      document.addEventListener('mouseenter', function() { mouseIn = true;  if (antiSpyActive && !document.hidden) setAttentionState('focused'); });
+      setAttentionState('focused');
+    }
+
+    async function activateAntiSpy() {
+      antiSpyActive = true;
+      _antiSpyStore.setItem(ANTISPY_KEY, '1');
+      hideAntiSpyModal();
+      if (antiSpyIndicator) antiSpyIndicator.style.display = 'flex';
+      if (antiSpyDot) antiSpyDot.style.background = '#95a5a6';
+      if (antiSpyLabelEl) antiSpyLabelEl.textContent = '🔄 Chargement détection caméra...';
+      document.addEventListener('visibilitychange', _handleVisibilityChange);
+      window.addEventListener('blur', _handleWindowBlur);
+      window.addEventListener('focus', _handleWindowFocus);
+      try {
+        await startFaceDetectionEngine();
+      } catch(err) {
+        console.warn('AntiSpy: caméra/BlazeFace indisponible, fallback souris:', err);
+        startFallbackTracking();
+      }
+    }
+
+    function deactivateAntiSpy() {
+      antiSpyActive = false;
+      if (antiSpyCheckInterval) { clearInterval(antiSpyCheckInterval); antiSpyCheckInterval = null; }
+      if (antiSpyVideoStream) { antiSpyVideoStream.getTracks().forEach(function(t) { t.stop(); }); antiSpyVideoStream = null; }
+      antiSpyFaceDetector = null;
+      document.removeEventListener('visibilitychange', _handleVisibilityChange);
+      window.removeEventListener('blur', _handleWindowBlur);
+      window.removeEventListener('focus', _handleWindowFocus);
+      if (messengerEls.chat) messengerEls.chat.classList.remove('chat-blurred');
+      if (antiSpyIndicator) antiSpyIndicator.style.display = 'none';
+      if (antiSpyAdvBadge) antiSpyAdvBadge.style.display = 'none';
+    }
+
+    // Called when messenger chat is confirmed visible
+    function _checkAntiSpyOnOpen() {
+      if (!messengerEls.chat || messengerEls.chat.style.display === 'none') return;
+      if (antiSpyActive) return;
+      const stored = _antiSpyStore.getItem(ANTISPY_KEY);
+      if (stored === '1') {
+        activateAntiSpy().then(startMessengerChat);
+      } else {
+        showAntiSpyModal();
+      }
+    }
+
+    document.getElementById('antispy-accept-btn').addEventListener('click', function() {
+      activateAntiSpy().then(startMessengerChat);
+    });
+    document.getElementById('antispy-dismiss-btn').addEventListener('click', function() {
+      // Not stored — will ask again next session
+      hideAntiSpyModal();
+      startMessengerChat();
+    });
+  </script>
+
+</body>
+</html>

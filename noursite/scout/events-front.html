@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en" class="__variable_abd653">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" href="_next/static/media/7e6a2e30184bb114-s.p.woff2" as="font" crossorigin="" type="font/woff2" />
+    <link rel="stylesheet" href="_next/static/css/82b439aa0e50ada6.css" data-precedence="next" />
+    <link rel="stylesheet" href="_next/static/css/b561f30792cfbf59.css" data-precedence="next" />
+    <link rel="stylesheet" href="_next/static/css/1dae55f044114fe2.css" data-precedence="next" />
+    <link rel="stylesheet" href="_next/static/css/360ea74d208bdaf5.css" data-precedence="next" />
+    <link rel="stylesheet" href="_next/static/css/9e34202550d1aaad.css" data-precedence="next" />
+    <link rel="stylesheet" href="_next/static/css/87fa59e057435059.css" data-precedence="next" />
+    <link rel="stylesheet" href="_next/static/css/001d0f9b62555381.css" data-precedence="next" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <title>Scout Events - Front</title>
+    <meta name="description" content="Evenements scouts" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" sizes="32x32" />
+    <style>
+        /* ── Grid ── */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 32px;
+            margin-top: 20px;
+        }
+
+        /* ── Animated border gradient keyframe ── */
+        @keyframes borderSpin {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes cornerPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.6; transform: scale(0.85); }
+        }
+
+        /* ── Card wrapper (handles the glowing border) ── */
+        .event-card-wrap {
+            position: relative;
+            padding: 2px;                        /* space for the gradient border */
+            border-radius: 10px;
+            background: linear-gradient(135deg, #e90b35 0%, #ff6a6a 30%, #fff 55%, #c4002b 80%, #e90b35 100%);
+            background-size: 300% 300%;
+            animation: borderSpin 4s ease infinite;
+            box-shadow: 0 0 0 rgba(233,11,53,0);
+            transition: box-shadow 0.4s ease;
+        }
+        .event-card-wrap:hover {
+            box-shadow: 0 0 28px rgba(233,11,53,0.40), 0 12px 40px rgba(17,22,31,0.18);
+        }
+
+        /* ── Corner accents ── */
+        .event-card-wrap .corner {
+            position: absolute;
+            width: 14px; height: 14px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .event-card-wrap .corner::before,
+        .event-card-wrap .corner::after {
+            content: '';
+            position: absolute;
+            background: #e90b35;
+            border-radius: 1px;
+        }
+        /* horizontal arm */
+        .event-card-wrap .corner::before { width: 100%; height: 2.5px; top:0; left:0; }
+        /* vertical arm */
+        .event-card-wrap .corner::after  { width: 2.5px; height: 100%; top:0; left:0; }
+
+        .event-card-wrap .corner.tl { top: 8px;  left: 8px; }
+        .event-card-wrap .corner.tr { top: 8px;  right: 8px; transform: rotate(90deg); }
+        .event-card-wrap .corner.bl { bottom: 8px; left: 8px; transform: rotate(-90deg); }
+        .event-card-wrap .corner.br { bottom: 8px; right: 8px; transform: rotate(180deg); }
+
+        .event-card-wrap:hover .corner::before,
+        .event-card-wrap:hover .corner::after {
+            animation: cornerPulse 0.9s ease-in-out infinite;
+        }
+
+        /* ── Card shell ── */
+        .event-card {
+            position: relative;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(17,22,31,0.07);
+            transform-style: preserve-3d;
+            transform: perspective(900px) rotateX(0deg) rotateY(0deg) scale(1);
+            transition: box-shadow 0.4s ease, transform 0.08s linear;
+            will-change: transform;
+        }
+
+        /* ── Entrance animation ── */
+        @keyframes cardReveal {
+            0%   { opacity: 0; transform: perspective(900px) translateY(60px) rotateX(14deg) scale(0.96); }
+            100% { opacity: 1; transform: perspective(900px) translateY(0)    rotateX(0deg)  scale(1); }
+        }
+        .event-card-wrap.reveal .event-card {
+            animation: cardReveal 0.65s cubic-bezier(0.23,1,0.32,1) both;
+        }
+
+        /* ── Sheen overlay for 3D gloss ── */
+        .event-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(255,255,255,0.22) 0%,
+                rgba(255,255,255,0)    60%
+            );
+            z-index: 3;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border-radius: 8px;
+        }
+        .event-card-wrap:hover .event-card::before { opacity: 1; }
+
+        /* ── Red accent bar that slides in ── */
+        .event-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #e90b35, #ff6a6a);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s cubic-bezier(0.23,1,0.32,1);
+            z-index: 4;
+        }
+        .event-card-wrap:hover .event-card::after { transform: scaleX(1); }
+
+        /* ── Image wrapper with zoom ── */
+        .event-image-wrap {
+            overflow: hidden;
+            height: 210px;
+            position: relative;
+        }
+        .event-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transform: scale(1);
+            transition: transform 0.55s cubic-bezier(0.23,1,0.32,1);
+        }
+        .event-card-wrap:hover .event-image { transform: scale(1.07); }
+
+        /* gradient over image */
+        .event-image-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 40%, rgba(17,22,31,0.35));
+            pointer-events: none;
+        }
+
+        /* ── Card body ── */
+        .event-body {
+            padding: 26px 26px 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ── Date badge ── */
+        .event-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #e90b35, #c4002b);
+            color: #fff;
+            padding: 5px 13px 5px 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border-radius: 2px;
+            margin-bottom: 16px;
+            box-shadow: 0 3px 12px rgba(233,11,53,0.35);
+        }
+        .event-date::before {
+            content: '📅';
+            font-size: 12px;
+        }
+
+        /* ── Title ── */
+        .event-title {
+            font-size: 22px;
+            line-height: 1.28em;
+            margin-bottom: 10px;
+            color: #11161f;
+            transition: color 0.25s;
+        }
+        .event-card-wrap:hover .event-title { color: #e90b35; }
+
+        /* ── Location ── */
+        .event-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13.5px;
+            color: #5f6675;
+            margin-bottom: 13px;
+            font-weight: 700;
+        }
+        .event-location::before {
+            content: '📍';
+            font-size: 14px;
+        }
+        .location-actions {
+            margin-bottom: 14px;
+        }
+        .location-btn {
+            border: 1px solid #11161f;
+            background: #11161f;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-radius: 3px;
+            padding: 7px 10px;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .location-btn:hover {
+            background: #e90b35;
+            border-color: #e90b35;
+        }
+
+        /* ── Description ── */
+        .event-desc {
+            font-size: 14.5px;
+            color: #5f6675;
+            line-height: 1.7em;
+            margin-bottom: 0;
+        }
+
+        .event-rating {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(17, 22, 31, 0.14);
+        }
+        .favorite-bar {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .favorite-btn {
+            border: 1px solid #d8dde7;
+            background: #fff;
+            color: #11161f;
+            padding: 7px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .favorite-btn.active {
+            background: #e90b35;
+            border-color: #e90b35;
+            color: #fff;
+        }
+        .favorite-meta {
+            font-size: 12px;
+            color: #5f6675;
+            font-weight: 700;
+        }
+        .stars {
+            display: inline-flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .star-btn {
+            border: none;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+            font-size: 22px;
+            line-height: 1;
+            color: #ccd2de;
+            transition: transform 0.15s ease, color 0.15s ease;
+        }
+        .star-btn:hover {
+            transform: translateY(-2px) scale(1.08);
+        }
+        .star-btn.active,
+        .star-btn.preview {
+            color: #ffb400;
+            text-shadow: 0 2px 8px rgba(255, 180, 0, 0.35);
+        }
+        .rating-meta {
+            font-size: 12.5px;
+            color: #5f6675;
+            font-weight: 600;
+        }
+        .rating-feedback {
+            margin-top: 6px;
+            font-size: 12.5px;
+            color: #138a36;
+            min-height: 18px;
+        }
+
+        .event-comments {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(17, 22, 31, 0.08);
+        }
+        .comments-title {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #11161f;
+            margin-bottom: 10px;
+        }
+        .comment-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .comment-input {
+            flex: 1;
+            border: 1px solid #d7dce6;
+            padding: 9px 10px;
+            font-size: 13px;
+            border-radius: 3px;
+        }
+        .comment-submit {
+            border: none;
+            background: #11161f;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 9px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .comment-submit:hover {
+            background: #e90b35;
+        }
+        .comments-feedback {
+            min-height: 16px;
+            font-size: 12px;
+            color: #5f6675;
+            margin-bottom: 8px;
+        }
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .comment-item {
+            background: #f7f8fb;
+            border: 1px solid #e2e6ee;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        .comment-author {
+            font-weight: 700;
+            color: #11161f;
+        }
+        .comment-date {
+            color: #7a8194;
+        }
+        .comment-text {
+            font-size: 13px;
+            color: #30394a;
+            line-height: 1.45;
+            margin-bottom: 8px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .comment-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .comment-react-btn {
+            border: 1px solid #d7dce6;
+            background: #fff;
+            color: #495164;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .comment-react-btn.like.active {
+            border-color: #2e7d32;
+            color: #2e7d32;
+            background: #eef7ef;
+        }
+        .comment-react-btn.dislike.active {
+            border-color: #c62828;
+            color: #c62828;
+            background: #fdeeee;
+        }
+        .comment-reply-btn {
+            border: 1px solid #d7dce6;
+            background: #fff;
+            color: #11161f;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .comment-reply-form {
+            display: none;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .comment-reply-form.open {
+            display: flex;
+        }
+        .comment-replies {
+            margin-top: 10px;
+            margin-left: 18px;
+            border-left: 2px solid #e3e7ef;
+            padding-left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        /* ── Voice buttons ── */
+        .mic-btn {
+            border: 1px solid #d7dce6;
+            background: #fff;
+            color: #495164;
+            font-size: 15px;
+            padding: 7px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.15s;
+            flex-shrink: 0;
+        }
+        .mic-btn:hover { background: #f0f2f7; }
+        .mic-btn.recording {
+            background: #fde8ec;
+            border-color: #e90b35;
+            color: #e90b35;
+            animation: pulse-mic 0.8s infinite;
+        }
+        @keyframes pulse-mic {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .tts-btn {
+            border: none;
+            background: none;
+            color: #7a8194;
+            font-size: 14px;
+            padding: 3px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+        .tts-btn:hover { color: #e90b35; background: #fde8ec; }
+        .tts-btn.speaking { color: #e90b35; }
+
+        /* ── Empty state ── */
+        .events-empty {
+            text-align: center;
+            background: #fff;
+            border: 1px dashed rgba(17,22,31,0.2);
+            padding: 48px 34px;
+            color: #5f6675;
+            font-size: 17px;
+            border-radius: 4px;
+            grid-column: 1/-1;
+        }
+        .events-empty .auth-actions {
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .events-empty .auth-btn {
+            display: inline-block;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-radius: 3px;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .events-empty .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(17, 22, 31, 0.14);
+        }
+        .events-empty .auth-btn.login {
+            background: #e90b35;
+            color: #fff;
+        }
+        .events-empty .auth-btn.register {
+            border: 1px solid #e90b35;
+            color: #e90b35;
+            background: #fff;
+        }
+
+        /* ── Floating particles in hero section ── */
+        .ev-particles {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .ev-particles span {
+            position: absolute;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(233,11,53,0.65);
+            animation: floatDot linear infinite;
+        }
+        @keyframes floatDot {
+            0%   { transform: translateY(0)   scale(1);   opacity: 0.7; }
+            50%  { transform: translateY(-60px) scale(1.4); opacity: 0.4; }
+            100% { transform: translateY(-120px) scale(0.8); opacity: 0; }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 1199px) {
+            .events-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 767px) {
+            .events-grid { grid-template-columns: 1fr; gap: 22px; }
+            .event-title  { font-size: 20px; }
+        }
+
+        .map-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 22, 31, 0.78);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .map-modal.open {
+            display: flex;
+        }
+        .map-modal-content {
+            width: min(960px, 100%);
+            height: min(78vh, 720px);
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+            display: flex;
+            flex-direction: column;
+        }
+        .map-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e1e5ef;
+        }
+        .map-modal-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #11161f;
+            margin: 0;
+        }
+        .map-modal-close {
+            border: 1px solid #ccd2de;
+            background: #fff;
+            color: #11161f;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 7px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .map-modal-close:hover {
+            border-color: #e90b35;
+            color: #e90b35;
+        }
+        .map-modal-body {
+            flex: 1;
+            min-height: 280px;
+        }
+        .event-map {
+            width: 100%;
+            height: 100%;
+        }
+        .map-modal-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e1e5ef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .map-status {
+            color: #5f6675;
+            font-size: 13px;
+        }
+        .map-open-route {
+            border: 1px solid #e90b35;
+            background: #e90b35;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-radius: 3px;
+            padding: 8px 11px;
+            text-decoration: none;
+        }
+        .map-open-route:hover {
+            background: #c4002b;
+            border-color: #c4002b;
+        }
+        .notif-popup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 22, 31, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 16px;
+        }
+        .notif-popup-overlay.open { display: flex; }
+        .notif-popup-card {
+            width: min(540px, 100%);
+            background: #fff;
+            border-top: 4px solid #e90b35;
+            box-shadow: 0 20px 48px rgba(17, 22, 31, 0.28);
+            padding: 18px;
+        }
+        .notif-popup-title {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #11161f;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .notif-popup-message {
+            margin: 0 0 14px 0;
+            color: #2a3040;
+            line-height: 1.55;
+        }
+        .notif-popup-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        .notif-popup-btn {
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            padding: 9px 13px;
+        }
+        .notif-popup-btn.secondary { background: #11161f; color: #fff; }
+        .notif-popup-btn.primary { background: #e90b35; color: #fff; }
+    </style>
+</head>
+<body>
+<div class="body-dark-bg" id="#top">
+    <header class="main-header main-header-one">
+        <div class="menu-area">
+            <div class="auto-container">
+                <div class="menu-area__inner">
+                    <div class="mobile-nav-toggler"><i class="fas fa-bars"></i></div>
+                    <div class="menu-wrap">
+                        <nav class="menu-nav">
+                            <div class="main-header-one__inner">
+                                <div class="main-header-one__left">
+                                    <div class="logo-box">
+                                        <a href="index.html"><img src="assets/img/resource/logo-site-png.png" alt="" /></a>
+                                    </div>
+                                </div>
+                                <div class="main-header-one__middle">
+                                    <div class="navbar-wrap main-menu">
+                                        <ul class="navigation">
+                                            <li><a href="index.html">Home</a></li>
+                                            <li><a href="">About</a></li>
+                                            <li><a href="">Programmes</a></li>
+                                            <li class="active"><a href="events-front.html">Evenements</a></li>
+                                            <li><a href="">Contact</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="main-header-one__right">
+                                    <div class="header-shopping-cart">
+                                        <a id="nav-login" href="/login" onclick="window.location.href='/login'; return false;">Se connecter</a>
+                                        <a id="nav-dashboard" href="http://127.0.0.1:5000/dashboard" style="display:none; margin-left:12px;">Mon dashboard</a>
+                                        <a id="nav-logout" href="/logout" style="display:none; margin-left:12px;">Se deconnecter</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mobile-menu">
+            <nav class="menu-box">
+                <div class="close-btn"><i class="fas fa-times"></i></div>
+                <div class="nav-logo"><a href="index.html"><img src="assets/img/resource/logo-site-png.png" alt="Logo" /></a></div>
+                <div class="menu-outer">
+                    <ul class="navigation clearfix">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="">About</a></li>
+                        <li><a href="">Programmes</a></li>
+                        <li class="active"><a href="events-front.html">Evenements</a></li>
+                        <li><a href="">Contact</a></li>
+                        <li id="nav-login-mobile"><a href="/login">Se connecter</a></li>
+                        <li id="nav-dashboard-mobile" style="display:none;"><a href="http://127.0.0.1:5000/dashboard">Mon dashboard</a></li>
+                        <li id="nav-logout-mobile" style="display:none;"><a href="/logout">Se deconnecter</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+        <div class="menu-backdrop"></div>
+        <div class="nav-overlay" style="display:none"></div>
+    </header>
+
+    <section class="page-header" style="position:relative;overflow:hidden;">
+        <div class="page-header__bg" style="background-image:url(assets/img/resource/photo.jpg)"></div>
+        <div class="ev-particles" id="hero-particles"></div>
+        <div class="container" style="position:relative;z-index:2;">
+            <div class="page-header__inner text-center">
+                <ul class="thm-breadcrumb">
+                    <li><a href="index.html">Home</a></li>
+                    <li class="active">Evenements</li>
+                </ul>
+                <h2>Evenements Scouts</h2>
+            </div>
+        </div>
+    </section>
+
+    <section class="blog-one" style="padding-top: 120px; padding-bottom: 120px;">
+        <div class="container">
+            <div class="sec-title text-center" style="margin-bottom:52px;">
+                <div class="sub-title" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+                    <span style="display:inline-block;width:40px;height:2px;background:linear-gradient(90deg,transparent,#e90b35);"></span>
+                    <h5 style="letter-spacing:.16em;color:#e90b35;margin:0;">AGENDA</h5>
+                    <span style="display:inline-block;width:40px;height:2px;background:linear-gradient(90deg,#e90b35,transparent);"></span>
+                </div>
+                <h2>Les derniers evenements ajoutes</h2>
+            </div>
+            <div id="events-list" class="events-grid"></div>
+        </div>
+    </section>
+
+    <footer class="footer-one">
+        <div class="shape1"><img class="float-bob-y" src="assets/img/shape/footer-v1-shape1.png" alt="" /></div>
+        <div class="footer-main">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-3 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay=".1s">
+                        <div class="single-footer-widget footer-widget__about">
+                            <div class="logo-box"><a href="index.html"><img src="assets/img/resource/logo-site-png.png" alt="" /></a></div>
+                            <div class="footer-widget__about-inner">
+                                <div class="text-box"><p>Siege national, Tunis<br/>Republique Tunisienne</p></div>
+                                <div class="number-box"><a href="tel:123456789">+216 71 000 000</a></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay=".2s">
+                        <div class="single-footer-widget footer-widget__links">
+                            <div class="title"><h2>Navigation</h2></div>
+                            <div class="footer-widget__links-box">
+                                <ul>
+                                    <li><a href="index.html">Home</a></li>
+                                    <li><a href="about.html">About</a></li>
+                                    <li><a href="service.html">Programmes</a></li>
+                                    <li><a href="events-front.html">Evenements</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="footer-bottom__inner">
+                    <div class="footer-bottom__text text-center"><p>Copyright 2026 Scout Tunisien. Tous droits reserves.</p></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<div id="notif-popup" class="notif-popup-overlay" aria-hidden="true">
+    <div class="notif-popup-card" role="dialog" aria-modal="true" aria-labelledby="notif-popup-title">
+        <h3 id="notif-popup-title" class="notif-popup-title">Rappel evenement</h3>
+        <p id="notif-popup-message" class="notif-popup-message"></p>
+        <div class="notif-popup-actions">
+            <button id="notif-popup-next" class="notif-popup-btn secondary" type="button">Suivant</button>
+            <button id="notif-popup-close" class="notif-popup-btn primary" type="button">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<div id="map-modal" class="map-modal" aria-hidden="true">
+    <div class="map-modal-content" role="dialog" aria-modal="true" aria-labelledby="map-modal-title">
+        <div class="map-modal-header">
+            <h3 id="map-modal-title" class="map-modal-title">Localisation de l'evenement</h3>
+            <button id="map-modal-close" type="button" class="map-modal-close">Fermer</button>
+        </div>
+        <div class="map-modal-body">
+            <div id="event-map" class="event-map"></div>
+        </div>
+        <div class="map-modal-footer">
+            <span id="map-status" class="map-status">Chargement de la carte...</span>
+            <a id="map-open-route" class="map-open-route" href="#" target="_blank" rel="noopener noreferrer">Itineraire</a>
+        </div>
+    </div>
+</div>
+
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<script>
+    const MAPBOX_STYLE_URL = 'mapbox://styles/hbrahem/cmoliv8ho002701sggfeu2u8z';
+    const MAPBOX_ACCESS_TOKEN = 'YOUR_MAPBOX_TOKEN_HERE';
+    const MAPBOX_FALLBACK_STYLE_URL = 'mapbox://styles/mapbox/satellite-streets-v12';
+    const MAP_LABEL_LANGUAGE = 'ar';
+    mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+    mapboxgl.setRTLTextPlugin(
+        'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js',
+        null,
+        true
+    );
+
+    let eventMap = null;
+    let eventMarker = null;
+    let hasAppliedMapFallback = false;
+
+    function applyPreferredLabelLanguage(map) {
+        const style = map.getStyle();
+        const layers = Array.isArray(style?.layers) ? style.layers : [];
+        layers.forEach((layer) => {
+            if (layer.type !== 'symbol') return;
+            const layout = layer.layout || {};
+            const textField = layout['text-field'];
+            if (!textField) return;
+            try {
+                map.setLayoutProperty(layer.id, 'text-field', [
+                    'coalesce',
+                    ['get', `name_${MAP_LABEL_LANGUAGE}`],
+                    ['get', 'name'],
+                    ['get', 'name_en']
+                ]);
+            } catch (err) {
+                // Ignore layers that do not support dynamic text-field overrides.
+            }
+        });
+    }
+
+    /* ── Floating particles in hero ── */
+    (function() {
+        const wrap = document.getElementById('hero-particles');
+        if (!wrap) return;
+        for (let i = 0; i < 18; i++) {
+            const s = document.createElement('span');
+            s.style.cssText = `
+                left:${Math.random()*100}%;
+                top:${40+Math.random()*60}%;
+                width:${4+Math.random()*6}px;
+                height:${4+Math.random()*6}px;
+                animation-duration:${2.5+Math.random()*3.5}s;
+                animation-delay:${Math.random()*3}s;
+                opacity:${0.4+Math.random()*0.5};
+            `;
+            wrap.appendChild(s);
+        }
+    })();
+
+    /* ── 3D tilt on mouse move ── */
+    function addTilt(wrap) {
+        const MAX = 12;
+        const inner = wrap.querySelector('.event-card');
+        wrap.addEventListener('mousemove', (e) => {
+            const rect = wrap.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width  - 0.5;
+            const y = (e.clientY - rect.top)  / rect.height - 0.5;
+            inner.style.transform = `perspective(900px) rotateY(${x*MAX*2}deg) rotateX(${-y*MAX}deg) scale(1.025)`;
+            inner.style.boxShadow = `${-x*22}px ${y*16+18}px 50px rgba(17,22,31,0.22)`;
+        });
+        wrap.addEventListener('mouseleave', () => {
+            inner.style.transform = 'perspective(900px) rotateX(0) rotateY(0) scale(1)';
+            inner.style.boxShadow = '0 4px 20px rgba(17,22,31,0.07)';
+        });
+    }
+
+    /* ── Scroll-reveal observer ── */
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                const wrap = entry.target;
+                const delay = wrap.dataset.revealDelay || 0;
+                setTimeout(() => {
+                    wrap.style.opacity = '1';
+                    wrap.classList.add('reveal');
+                    addTilt(wrap);
+                }, delay);
+                revealObserver.unobserve(wrap);
+            }
+        });
+    }, { threshold: 0.12 });
+
+    function formatDate(value) {
+        if (!value) return 'Date a venir';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function escapeHtml(str) {
+        return (str || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    function formatRating(avg, count) {
+        const safeAvg = Number.isFinite(Number(avg)) ? Number(avg).toFixed(1) : '0.0';
+        const safeCount = Number.isFinite(Number(count)) ? Number(count) : 0;
+        return `${safeAvg}/5 (${safeCount} avis)`;
+    }
+
+    function ensureEventMap() {
+        if (eventMap) return eventMap;
+        eventMap = new mapboxgl.Map({
+            container: 'event-map',
+            style: MAPBOX_STYLE_URL,
+            center: [10.1815, 36.8065],
+            zoom: 6
+        });
+        eventMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+        eventMap.on('styledata', () => {
+            applyPreferredLabelLanguage(eventMap);
+        });
+
+        eventMap.on('load', () => {
+            const statusEl = document.getElementById('map-status');
+            const style = eventMap.getStyle();
+            const hasLayers = Array.isArray(style?.layers) && style.layers.length > 0;
+            if (!hasLayers && !hasAppliedMapFallback) {
+                hasAppliedMapFallback = true;
+                eventMap.setStyle(MAPBOX_FALLBACK_STYLE_URL);
+                if (statusEl) statusEl.textContent = 'Style personnalise indisponible, affichage satellite active.';
+            }
+            applyPreferredLabelLanguage(eventMap);
+        });
+
+        eventMap.on('error', () => {
+            const statusEl = document.getElementById('map-status');
+            if (!hasAppliedMapFallback) {
+                hasAppliedMapFallback = true;
+                eventMap.setStyle(MAPBOX_FALLBACK_STYLE_URL);
+                if (statusEl) statusEl.textContent = 'Style personnalise indisponible, affichage satellite active.';
+            }
+        });
+        return eventMap;
+    }
+
+    async function geocodeLocation(locationText) {
+        // Preferred format: "Place [GPS:lng,lat]"
+        const gpsMatch = locationText ? locationText.match(/^(.*)\s*\[GPS:\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]\s*$/i) : null;
+        if (gpsMatch) {
+            const label = (gpsMatch[1] || '').trim() || locationText;
+            return { lng: Number(gpsMatch[2]), lat: Number(gpsMatch[3]), label };
+        }
+
+        // Legacy format compatibility: "Name||lng,lat"
+        if (locationText && locationText.includes('||')) {
+            const parts = locationText.split('||');
+            const label = parts[0].trim();
+            const coordParts = parts[1].trim().split(',');
+            if (coordParts.length === 2) {
+                const lng = Number(coordParts[0]);
+                const lat = Number(coordParts[1]);
+                if (!isNaN(lng) && !isNaN(lat)) {
+                    return { lng, lat, label: label || locationText };
+                }
+            }
+        }
+        // Check if location is plain "lng,lat" coordinates
+        if (locationText && /^-?\d+\.\d+,-?\d+\.\d+$/.test(locationText.trim())) {
+            const coordParts = locationText.trim().split(',');
+            return { lng: Number(coordParts[0]), lat: Number(coordParts[1]), label: locationText };
+        }
+        // Fallback: forward geocode the text
+        const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(locationText)}.json?limit=1&access_token=${MAPBOX_ACCESS_TOKEN}`;
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error('Geocodage indisponible');
+        const data = await response.json();
+        const first = Array.isArray(data.features) ? data.features[0] : null;
+        if (!first || !Array.isArray(first.center) || first.center.length < 2) {
+            throw new Error('Lieu introuvable');
+        }
+        return {
+            lng: Number(first.center[0]),
+            lat: Number(first.center[1]),
+            label: String(first.place_name || locationText)
+        };
+    }
+
+    async function openLocationMap(eventTitle, locationText) {
+        const modal = document.getElementById('map-modal');
+        const titleEl = document.getElementById('map-modal-title');
+        const statusEl = document.getElementById('map-status');
+        const routeEl = document.getElementById('map-open-route');
+
+        titleEl.textContent = `Localisation: ${eventTitle}`;
+        statusEl.textContent = 'Recherche de la localisation...';
+        routeEl.href = '#';
+
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+
+        try {
+            const coords = await geocodeLocation(locationText);
+            const map = ensureEventMap();
+            map.resize();
+            map.flyTo({ center: [coords.lng, coords.lat], zoom: 14, speed: 0.9 });
+
+            if (eventMarker) eventMarker.remove();
+            eventMarker = new mapboxgl.Marker({ color: '#e90b35' })
+                .setLngLat([coords.lng, coords.lat])
+                .setPopup(new mapboxgl.Popup({ offset: 24 }).setHTML(`<strong>${escapeHtml(eventTitle)}</strong><br>${escapeHtml(coords.label)}`))
+                .addTo(map);
+            eventMarker.togglePopup();
+
+            statusEl.textContent = coords.label;
+            routeEl.href = `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`;
+        } catch (err) {
+            statusEl.textContent = 'Impossible de localiser ce lieu pour le moment.';
+        }
+    }
+
+    function closeLocationMap() {
+        const modal = document.getElementById('map-modal');
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function renderStars(eventId, myRating) {
+        const current = Number(myRating || 0);
+        let html = '';
+        for (let i = 1; i <= 5; i += 1) {
+            const active = i <= current ? 'active' : '';
+            html += `<button class="star-btn ${active}" data-event-id="${eventId}" data-stars="${i}" title="${i} etoile(s)" aria-label="Noter ${i} sur 5">★</button>`;
+        }
+        return html;
+    }
+
+    function formatDateTime(value) {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function renderComments(eventId, comments) {
+        if (!comments || !comments.length) {
+            return '<div class="comment-item">Aucun commentaire pour le moment.</div>';
+        }
+
+        const byParent = new Map();
+        comments.forEach((comment) => {
+            const key = comment.parent_comment_id || 0;
+            if (!byParent.has(key)) byParent.set(key, []);
+            byParent.get(key).push(comment);
+        });
+
+        function renderCommentNode(comment) {
+            const myReaction = comment.my_reaction || '';
+            const children = byParent.get(comment.id) || [];
+            return `
+                <div class="comment-item" data-comment-id="${comment.id}">
+                    <div class="comment-header">
+                        <span class="comment-author">${escapeHtml(comment.username || 'Utilisateur')}</span>
+                        <span class="comment-date">${escapeHtml(formatDateTime(comment.updated_at || comment.created_at))}</span>
+                    </div>
+                    <div class="comment-text">${escapeHtml(comment.content || '')}</div>
+                    <div class="comment-actions">
+                        <button class="comment-react-btn like ${myReaction === 'like' ? 'active' : ''}" data-comment-id="${comment.id}" data-reaction="like">
+                            👍 <span>${Number(comment.like_count || 0)}</span>
+                        </button>
+                        <button class="comment-react-btn dislike ${myReaction === 'dislike' ? 'active' : ''}" data-comment-id="${comment.id}" data-reaction="dislike">
+                            👎 <span>${Number(comment.dislike_count || 0)}</span>
+                        </button>
+                        <button class="comment-reply-btn" data-toggle-reply="${comment.id}">Repondre</button>
+                        <button class="tts-btn" title="Lire à voix haute" data-tts-text="${escapeHtml(comment.content || '')}">🔊</button>
+                    </div>
+                    <form class="comment-reply-form" data-reply-form="${comment.id}">
+                        <input class="comment-input" data-reply-input="${comment.id}" type="text" maxlength="1000" placeholder="Ecrire une reponse...">
+                        <button type="button" class="mic-btn" title="Dicter une reponse" data-mic-for-reply="${comment.id}">🎤</button>
+                        <button class="comment-submit" type="submit">Envoyer</button>
+                    </form>
+                    ${children.length ? `<div class="comment-replies">${children.map(renderCommentNode).join('')}</div>` : ''}
+                </div>
+            `;
+        }
+
+        return (byParent.get(0) || []).map(renderCommentNode).join('');
+    }
+
+    async function loadComments(eventId) {
+        const box = document.querySelector(`[data-comments-box="${eventId}"]`);
+        if (!box) return;
+        box.textContent = 'Chargement des commentaires...';
+
+        try {
+            const response = await fetch(`/public/events/${eventId}/comments`);
+            if (response.status === 401) {
+                setAuthState(false);
+                box.innerHTML = '<div class="comment-item">Connectez-vous pour voir et publier les commentaires.</div>';
+                return;
+            }
+            if (!response.ok) throw new Error('Erreur serveur');
+
+            const payload = await response.json();
+            const comments = Array.isArray(payload.comments) ? payload.comments : [];
+            box.innerHTML = renderComments(eventId, comments);
+            bindCommentReactionHandlers(eventId);
+        } catch (err) {
+            box.innerHTML = '<div class="comment-item">Impossible de charger les commentaires.</div>';
+        }
+    }
+
+    async function reactToComment(eventId, commentId, reaction, buttonEl) {
+        const isActive = buttonEl.classList.contains('active');
+        const desiredReaction = isActive ? 'none' : reaction;
+        try {
+            const response = await fetch(`/public/comments/${commentId}/reaction`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reaction: desiredReaction })
+            });
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            if (!response.ok) throw new Error('Erreur reaction');
+
+            const payload = await response.json();
+            const commentEl = document.querySelector(`.comment-item[data-comment-id="${commentId}"]`);
+            if (!commentEl) return;
+            const likeBtn = commentEl.querySelector('[data-reaction="like"]');
+            const dislikeBtn = commentEl.querySelector('[data-reaction="dislike"]');
+            if (!likeBtn || !dislikeBtn) return;
+
+            likeBtn.classList.toggle('active', payload.my_reaction === 'like');
+            dislikeBtn.classList.toggle('active', payload.my_reaction === 'dislike');
+            likeBtn.querySelector('span').textContent = String(Number(payload.like_count || 0));
+            dislikeBtn.querySelector('span').textContent = String(Number(payload.dislike_count || 0));
+        } catch (err) {
+            const feedback = document.querySelector(`[data-comments-feedback="${eventId}"]`);
+            if (feedback) feedback.textContent = 'Impossible de reactiver ce commentaire maintenant.';
+        }
+    }
+
+    function bindCommentReactionHandlers(eventId) {
+        const section = document.querySelector(`[data-comments-section="${eventId}"]`);
+        if (!section) return;
+        section.querySelectorAll('.comment-react-btn').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const commentId = Number(btn.dataset.commentId || '0');
+                const reaction = String(btn.dataset.reaction || '');
+                if (!commentId || !reaction) return;
+                reactToComment(eventId, commentId, reaction, btn);
+            });
+        });
+
+        section.querySelectorAll('[data-toggle-reply]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const commentId = btn.getAttribute('data-toggle-reply');
+                const form = section.querySelector(`[data-reply-form="${commentId}"]`);
+                if (!form) return;
+                const isOpen = form.classList.toggle('open');
+                btn.textContent = isOpen ? 'Annuler' : 'Repondre';
+            });
+        });
+
+        section.querySelectorAll('[data-reply-form]').forEach((form) => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const parentCommentId = Number(form.getAttribute('data-reply-form') || '0');
+                const input = form.querySelector('[data-reply-input]');
+                const feedback = document.querySelector(`[data-comments-feedback="${eventId}"]`);
+                const content = String(input?.value || '').trim();
+                if (!content || !parentCommentId) {
+                    if (feedback) feedback.textContent = 'Reponse vide.';
+                    return;
+                }
+                try {
+                    const response = await fetch(`/public/events/${eventId}/comments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content, parent_comment_id: parentCommentId })
+                    });
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    if (!response.ok) throw new Error('Erreur reponse');
+                    if (input) input.value = '';
+                    form.classList.remove('open');
+                    const toggleBtn = section.querySelector(`[data-toggle-reply="${parentCommentId}"]`);
+                    if (toggleBtn) toggleBtn.textContent = 'Repondre';
+                    if (feedback) feedback.textContent = 'Reponse ajoutee.';
+                    await loadComments(eventId);
+                } catch (err) {
+                    if (feedback) feedback.textContent = 'Impossible d\'ajouter la reponse pour le moment.';
+                }
+            });
+        });
+    }
+
+    function bindCommentFormHandler(eventId) {
+        const form = document.querySelector(`[data-comment-form="${eventId}"]`);
+        const input = document.querySelector(`[data-comment-input="${eventId}"]`);
+        const feedback = document.querySelector(`[data-comments-feedback="${eventId}"]`);
+        if (!form || !input || !feedback) return;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const content = String(input.value || '').trim();
+            if (!content) {
+                feedback.textContent = 'Ecrivez un commentaire avant envoi.';
+                return;
+            }
+            feedback.textContent = 'Envoi en cours...';
+            try {
+                const response = await fetch(`/public/events/${eventId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                if (!response.ok) throw new Error('Erreur commentaire');
+                input.value = '';
+                feedback.textContent = 'Commentaire ajoute.';
+                await loadComments(eventId);
+            } catch (err) {
+                feedback.textContent = 'Impossible d\'ajouter le commentaire pour le moment.';
+            }
+        });
+    }
+
+    function setAuthState(isAuthenticated) {
+        const login = document.getElementById('nav-login');
+        const dashboard = document.getElementById('nav-dashboard');
+        const logout = document.getElementById('nav-logout');
+        const loginMobile = document.getElementById('nav-login-mobile');
+        const dashboardMobile = document.getElementById('nav-dashboard-mobile');
+        const logoutMobile = document.getElementById('nav-logout-mobile');
+
+        if (login) login.style.display = isAuthenticated ? 'none' : '';
+        if (dashboard) dashboard.style.display = isAuthenticated ? '' : 'none';
+        if (logout) logout.style.display = isAuthenticated ? '' : 'none';
+        if (loginMobile) loginMobile.style.display = isAuthenticated ? 'none' : '';
+        if (dashboardMobile) dashboardMobile.style.display = isAuthenticated ? '' : 'none';
+        if (logoutMobile) logoutMobile.style.display = isAuthenticated ? '' : 'none';
+    }
+
+    async function showEventReminderPopups() {
+        try {
+            const response = await fetch('/api/notifications');
+            if (!response.ok) return;
+            const payload = await response.json();
+            const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
+            const reminders = notifications.filter((n) => !Number(n.is_read || 0) && n.notification_type === 'event_reminder');
+            if (!reminders.length) return;
+
+            const storageKey = 'shownEventReminderIds';
+            let shown = [];
+            try {
+                shown = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
+            } catch {
+                shown = [];
+            }
+
+            const queue = reminders.filter((item) => !shown.includes(item.id));
+            if (!queue.length) return;
+
+            const overlay = document.getElementById('notif-popup');
+            const titleEl = document.getElementById('notif-popup-title');
+            const messageEl = document.getElementById('notif-popup-message');
+            const nextBtn = document.getElementById('notif-popup-next');
+            const closeBtn = document.getElementById('notif-popup-close');
+            if (!overlay || !titleEl || !messageEl || !nextBtn || !closeBtn) return;
+
+            let idx = 0;
+            function renderCurrent() {
+                const item = queue[idx];
+                if (!item) return;
+                titleEl.textContent = item.title || 'Rappel evenement';
+                messageEl.textContent = item.message || '';
+                nextBtn.style.display = idx < queue.length - 1 ? 'inline-block' : 'none';
+                overlay.classList.add('open');
+                overlay.setAttribute('aria-hidden', 'false');
+            }
+
+            function closePopup() {
+                overlay.classList.remove('open');
+                overlay.setAttribute('aria-hidden', 'true');
+                const merged = [...new Set([...shown, ...queue.map((q) => q.id)])];
+                sessionStorage.setItem(storageKey, JSON.stringify(merged));
+            }
+
+            nextBtn.onclick = () => {
+                idx += 1;
+                if (idx >= queue.length) {
+                    closePopup();
+                    return;
+                }
+                renderCurrent();
+            };
+            closeBtn.onclick = closePopup;
+            overlay.onclick = (event) => {
+                if (event.target === overlay) closePopup();
+            };
+
+            renderCurrent();
+        } catch {
+            // Ignore popup failures to keep the page usable.
+        }
+    }
+
+    async function submitRating(eventId, stars, cardEl) {
+        const feedback = cardEl.querySelector('.rating-feedback');
+        feedback.textContent = 'Envoi de votre evaluation...';
+        try {
+            const response = await fetch(`/public/events/${eventId}/rating`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stars })
+            });
+
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            if (!response.ok) {
+                throw new Error('Erreur lors de l\'envoi de la note');
+            }
+
+            const payload = await response.json();
+            const meta = cardEl.querySelector('.rating-meta');
+            meta.textContent = formatRating(payload.avg_rating, payload.rating_count);
+
+            cardEl.querySelectorAll('.star-btn').forEach((btn) => {
+                const value = Number(btn.dataset.stars || '0');
+                btn.classList.toggle('active', value <= stars);
+                btn.classList.remove('preview');
+            });
+
+            feedback.textContent = 'Merci, votre evaluation a ete enregistree.';
+        } catch (err) {
+            feedback.textContent = 'Impossible d\'envoyer la note pour le moment.';
+        }
+    }
+
+    async function toggleFavorite(eventId, cardEl) {
+        const btn = cardEl.querySelector(`[data-favorite-btn="${eventId}"]`);
+        const meta = cardEl.querySelector(`[data-favorite-meta="${eventId}"]`);
+        if (!btn || !meta) return;
+        btn.disabled = true;
+        try {
+            const response = await fetch(`/public/events/${eventId}/favorite`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'toggle' })
+            });
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            if (!response.ok) throw new Error('Erreur favoris');
+            const payload = await response.json();
+            const isFavorite = Boolean(payload.is_favorite);
+            btn.classList.toggle('active', isFavorite);
+            btn.textContent = isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris';
+            meta.textContent = `${Number(payload.favorite_count || 0)} favori(s)`;
+        } catch (err) {
+            meta.textContent = 'Erreur favoris';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function loadEvents() {
+        const list = document.getElementById('events-list');
+        list.innerHTML = '<div class="events-empty">Chargement des evenements...</div>';
+
+        try {
+            const response = await fetch('/public/events');
+            if (response.status === 401) {
+                setAuthState(false);
+                list.innerHTML = `
+                    <div class="events-empty">
+                        Pour voir les evenements, connectez-vous ou creez un compte.
+                        <div class="auth-actions">
+                            <a class="auth-btn login" href="/login">Se connecter</a>
+                            <a class="auth-btn register" href="/register">Creer un compte</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            if (!response.ok) throw new Error('Erreur serveur');
+            setAuthState(true);
+            showEventReminderPopups();
+            const payload = await response.json();
+            const events = Array.isArray(payload.events) ? payload.events : [];
+
+            if (!events.length) {
+                list.innerHTML = '<div class="events-empty">Aucun evenement disponible pour le moment.</div>';
+                return;
+            }
+
+            list.innerHTML = events.map((event, idx) => `
+                <div class="event-card-wrap" data-reveal-delay="${idx * 100}" style="opacity:0;">
+                    <span class="corner tl"></span>
+                    <span class="corner tr"></span>
+                    <span class="corner bl"></span>
+                    <span class="corner br"></span>
+                    <article class="event-card">
+                        ${event.image_url ? `
+                            <div class="event-image-wrap">
+                                <img class="event-image" src="${escapeHtml(event.image_url)}" alt="image evenement">
+                            </div>` : ''}
+                        <div class="event-body">
+                            <span class="event-date">${escapeHtml(formatDate(event.event_date))}</span>
+                            <h3 class="event-title">${escapeHtml(event.title)}</h3>
+                            <p class="event-location">${escapeHtml((event.location || 'Lieu a confirmer').replace(/\s*\[GPS:.*\]\s*$/i, '').split('||')[0].trim())}</p>
+                            <div class="location-actions">
+                                <button class="location-btn" type="button" data-location-btn="${event.id}" data-location-name="${escapeHtml(event.location || '')}" data-event-title="${escapeHtml(event.title || 'Evenement')}">Voir localisation</button>
+                            </div>
+                            <p class="event-desc">${escapeHtml(event.description || 'Details a venir')}</p>
+                            <div class="favorite-bar" data-favorite-card="${event.id}">
+                                <button class="favorite-btn ${event.is_favorite ? 'active' : ''}" data-favorite-btn="${event.id}" type="button">${event.is_favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}</button>
+                                <span class="favorite-meta" data-favorite-meta="${event.id}">${Number(event.favorite_count || 0)} favori(s)</span>
+                            </div>
+                            <div class="event-rating" data-event-card="${event.id}">
+                                <div class="stars">${renderStars(event.id, event.my_rating)}</div>
+                                <div class="rating-meta">${formatRating(event.avg_rating, event.rating_count)}</div>
+                                <div class="rating-feedback"></div>
+                            </div>
+                            <div class="event-comments" data-comments-section="${event.id}">
+                                <div class="comments-title">Commentaires</div>
+                                <form class="comment-form" data-comment-form="${event.id}">
+                                    <input class="comment-input" data-comment-input="${event.id}" type="text" maxlength="1000" placeholder="Ecrire un commentaire...">
+                                    <button type="button" class="mic-btn" title="Dicter un commentaire" data-mic-for-input="comment-input-${event.id}">🎤</button>
+                                    <button class="comment-submit" type="submit">Envoyer</button>
+                                </form>
+                                <div class="comments-feedback" data-comments-feedback="${event.id}"></div>
+                                <div class="comments-list" data-comments-box="${event.id}">Chargement des commentaires...</div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            `).join('');
+
+            /* observe each card for reveal */
+            list.querySelectorAll('.event-card-wrap').forEach(card => revealObserver.observe(card));
+
+            list.querySelectorAll('.event-rating').forEach((cardEl) => {
+                const stars = cardEl.querySelectorAll('.star-btn');
+                stars.forEach((btn) => {
+                    btn.addEventListener('mouseenter', () => {
+                        const hoverVal = Number(btn.dataset.stars || '0');
+                        stars.forEach((s) => {
+                            const v = Number(s.dataset.stars || '0');
+                            s.classList.toggle('preview', v <= hoverVal);
+                        });
+                    });
+                    btn.addEventListener('mouseleave', () => {
+                        stars.forEach((s) => s.classList.remove('preview'));
+                    });
+                    btn.addEventListener('click', () => {
+                        const eventId = Number(btn.dataset.eventId || '0');
+                        const value = Number(btn.dataset.stars || '0');
+                        if (!eventId || !value) return;
+                        submitRating(eventId, value, cardEl);
+                    });
+                });
+            });
+
+            list.querySelectorAll('[data-favorite-card]').forEach((cardEl) => {
+                const btn = cardEl.querySelector('[data-favorite-btn]');
+                if (!btn) return;
+                btn.addEventListener('click', () => {
+                    const eventId = Number(btn.getAttribute('data-favorite-btn') || '0');
+                    if (!eventId) return;
+                    toggleFavorite(eventId, cardEl);
+                });
+            });
+
+            list.querySelectorAll('[data-location-btn]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const locationName = String(btn.getAttribute('data-location-name') || '').trim();
+                    const eventTitle = String(btn.getAttribute('data-event-title') || 'Evenement');
+                    if (!locationName) {
+                        alert('La localisation de cet evenement n\'est pas disponible.');
+                        return;
+                    }
+                    openLocationMap(eventTitle, locationName);
+                });
+            });
+
+            events.forEach((event) => {
+                bindCommentFormHandler(event.id);
+                loadComments(event.id);
+            });
+
+        } catch (error) {
+            list.innerHTML = '<div class="events-empty">Impossible de charger les evenements pour le moment.</div>';
+        }
+    }
+
+    setAuthState(false);
+    loadEvents();
+
+    document.getElementById('map-modal-close')?.addEventListener('click', closeLocationMap);
+    document.getElementById('map-modal')?.addEventListener('click', (e) => {
+        if (e.target && e.target.id === 'map-modal') closeLocationMap();
+    });
+
+    /* ================================================================
+       SPEECH-TO-TEXT (STT) — Web Speech API SpeechRecognition
+    ================================================================ */
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let _activeRecognition = null;
+    let _activeMicBtn = null;
+
+    function startSTT(targetInput, micBtn) {
+        if (!SpeechRecognition) {
+            alert("Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.");
+            return;
+        }
+        // Stop if already recording
+        if (_activeRecognition) {
+            _activeRecognition.stop();
+            return;
+        }
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'fr-FR';
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+        _activeRecognition = recognition;
+        _activeMicBtn = micBtn;
+
+        const originalValue = targetInput.value;
+        micBtn.classList.add('recording');
+        micBtn.title = 'Cliquer pour arrêter';
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            targetInput.value = originalValue ? originalValue + ' ' + transcript : transcript;
+        };
+        recognition.onerror = () => {
+            micBtn.classList.remove('recording');
+            micBtn.title = 'Dicter un commentaire';
+            _activeRecognition = null;
+            _activeMicBtn = null;
+        };
+        recognition.onend = () => {
+            micBtn.classList.remove('recording');
+            micBtn.title = 'Dicter un commentaire';
+            _activeRecognition = null;
+            _activeMicBtn = null;
+        };
+        recognition.start();
+    }
+
+    /* Delegate mic button clicks (works for dynamically created forms too) */
+    document.addEventListener('click', (e) => {
+        const micBtn = e.target.closest('.mic-btn');
+        if (!micBtn) return;
+        e.preventDefault();
+
+        // Find associated input by data attribute
+        const forInput = micBtn.dataset.micForInput;   // e.g. "comment-input-3"
+        const forReply = micBtn.dataset.micForReply;   // e.g. "5" (comment id)
+
+        let targetInput = null;
+        if (forInput) {
+            // forInput = "comment-input-{eventId}" → find [data-comment-input="{eventId}"]
+            const eventId = forInput.replace('comment-input-', '');
+            targetInput = document.querySelector(`[data-comment-input="${eventId}"]`);
+        } else if (forReply) {
+            targetInput = document.querySelector(`[data-reply-input="${forReply}"]`);
+        }
+        if (targetInput) startSTT(targetInput, micBtn);
+    });
+
+    /* ================================================================
+       TEXT-TO-SPEECH (TTS) — Web Speech API SpeechSynthesis
+    ================================================================ */
+    let _activeTtsBtn = null;
+
+    function stopTTS() {
+        window.speechSynthesis.cancel();
+        if (_activeTtsBtn) {
+            _activeTtsBtn.classList.remove('speaking');
+            _activeTtsBtn.textContent = '🔊';
+            _activeTtsBtn = null;
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        const ttsBtn = e.target.closest('.tts-btn');
+        if (!ttsBtn) return;
+        e.preventDefault();
+
+        // If same button → stop
+        if (_activeTtsBtn === ttsBtn) { stopTTS(); return; }
+        stopTTS();
+
+        const text = ttsBtn.dataset.ttsText || '';
+        if (!text) return;
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'fr-FR';
+        utterance.rate = 1;
+
+        _activeTtsBtn = ttsBtn;
+        ttsBtn.classList.add('speaking');
+        ttsBtn.textContent = '⏹';
+        ttsBtn.title = 'Arrêter';
+
+        utterance.onend = () => {
+            if (_activeTtsBtn === ttsBtn) {
+                ttsBtn.classList.remove('speaking');
+                ttsBtn.textContent = '🔊';
+                ttsBtn.title = 'Lire à voix haute';
+                _activeTtsBtn = null;
+            }
+        };
+        utterance.onerror = () => stopTTS();
+
+        window.speechSynthesis.speak(utterance);
+    });
+</script>
+</body>
+</html>

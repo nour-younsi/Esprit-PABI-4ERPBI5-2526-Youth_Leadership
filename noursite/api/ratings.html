@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Evaluations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Barlow', sans-serif;
+            background: #f5f5f8;
+            color: #11161f;
+            display: flex;
+            min-height: 100vh;
+        }
+        .admin-sidebar {
+            width: 220px;
+            min-height: 100vh;
+            background: #11161f;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 0 24px 0;
+            flex-shrink: 0;
+        }
+        .admin-sidebar h2 {
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #e90b35;
+            padding: 0 24px 24px 24px;
+            border-bottom: 1px solid #2a3040;
+        }
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            margin-top: 18px;
+            flex: 1;
+        }
+        .admin-nav a {
+            text-decoration: none;
+            color: #bfc5d0;
+            padding: 12px 24px;
+            font-size: 0.97em;
+            font-weight: 600;
+            transition: background 0.15s, color 0.15s;
+        }
+        .admin-nav a:hover { background: #1e2635; color: #fff; }
+        .admin-nav a.active { background: #e90b35; color: #fff; }
+        .admin-nav a.logout-link { margin-top: auto; color: #e90b35; }
+        .admin-nav a.logout-link:hover { background: #e90b35; color: #fff; }
+
+        .page {
+            flex: 1;
+            padding: 32px;
+            background: #f5f5f8;
+            overflow-y: auto;
+        }
+        .page-card {
+            background: #fff;
+            border-top: 4px solid #e90b35;
+            box-shadow: 0 20px 50px rgba(17, 22, 31, 0.10);
+            padding: 28px;
+            margin-bottom: 28px;
+        }
+        h1 {
+            font-size: 1.35em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+        h2.section-title {
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 14px;
+            color: #11161f;
+            border-bottom: 2px solid #e90b35;
+            padding-bottom: 6px;
+        }
+        p { color: #5f6675; margin-bottom: 18px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border-bottom: 1px solid #eceff5;
+            text-align: left;
+            padding: 10px 8px;
+            font-size: 0.91em;
+            vertical-align: middle;
+        }
+        th { text-transform: uppercase; font-size: 0.75em; color: #636b7a; white-space: nowrap; }
+        tr:hover td { background: #f9f9fb; }
+
+        /* star display */
+        .stars { color: #f5a623; letter-spacing: 2px; font-size: 1.05em; }
+        .stars-empty { color: #d0d4dc; }
+        .score-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-weight: 700;
+            font-size: 0.88em;
+            color: #fff;
+        }
+        .score-5 { background: #2e7d32; }
+        .score-4 { background: #558b2f; }
+        .score-3 { background: #f9a825; color: #111; }
+        .score-2 { background: #e65100; }
+        .score-1 { background: #c62828; }
+
+        /* stat cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #fff;
+            border-top: 3px solid #e90b35;
+            box-shadow: 0 4px 16px rgba(17,22,31,0.08);
+            padding: 18px 20px;
+        }
+        .stat-card .event-name {
+            font-size: 0.88em;
+            font-weight: 700;
+            color: #11161f;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .stat-card .avg {
+            font-size: 2em;
+            font-weight: 800;
+            color: #e90b35;
+            line-height: 1;
+        }
+        .stat-card .avg-label { font-size: 0.78em; color: #7a8194; margin-bottom: 8px; }
+        .stat-card .count { font-size: 0.85em; color: #5f6675; margin-bottom: 10px; }
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+            font-size: 0.8em;
+        }
+        .bar-row .bar-label { width: 14px; color: #636b7a; text-align: right; flex-shrink: 0; }
+        .bar-wrap { flex: 1; background: #eceff5; height: 8px; }
+        .bar-fill { height: 100%; background: #f5a623; transition: width 0.3s; }
+        .bar-row .bar-num { width: 20px; color: #7a8194; text-align: right; flex-shrink: 0; }
+
+        /* filter bar */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-bar select, .filter-bar input {
+            border: 1px solid #ccd3dd;
+            padding: 8px 10px;
+            font-size: 0.9em;
+            font-family: inherit;
+            background: #fff;
+        }
+        .filter-bar label { font-size: 0.88em; color: #636b7a; font-weight: 600; }
+
+        .masked-comment {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .masked-badge {
+            display: inline-block;
+            background: #fff3e0;
+            color: #b26a00;
+            border: 1px solid #ffd08a;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .reveal-btn {
+            border: none;
+            background: #11161f;
+            color: #fff;
+            padding: 6px 10px;
+            font-size: 0.78em;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .reveal-btn:hover {
+            background: #e90b35;
+        }
+        .original-comment {
+            display: none;
+            background: #fff8ec;
+            border: 1px solid #ffd08a;
+            color: #6b4200;
+            padding: 8px 10px;
+            border-radius: 4px;
+            width: 100%;
+        }
+        .original-comment.open {
+            display: block;
+        }
+
+        #loading { color: #7a8194; font-style: italic; }
+
+        @media (max-width: 700px) {
+            body { flex-direction: column; }
+            .admin-sidebar { width: 100%; min-height: unset; flex-direction: row; padding: 12px; align-items: center; flex-wrap: wrap; }
+            .admin-sidebar h2 { border-bottom: none; padding: 0 16px 0 0; }
+            .admin-nav { flex-direction: row; margin-top: 0; flex-wrap: wrap; }
+            .admin-nav a { padding: 8px 12px; }
+            .page { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="admin-sidebar">
+        <h2>Admin Panel</h2>
+        <nav class="admin-nav">
+    <a href="/chatbot">Chatbot</a>
+    <a href="/client">Client ML</a>
+    <a href="/admin">Matricules</a>
+    <a href="/events">Evenements</a>
+    <a href="/admin/ratings">Evaluations</a>
+    <a href="/admin/bi-dashboard">Dashboard BI</a>
+    <a href="/landing">Accueil</a>
+    <a href="/admin/face-setup">Face ID</a>
+    <a href="/api/messenger">Messenger</a>
+    <a href="/api/messenger/analysis">NLP Analyse</a>
+    <a href="/logout" class="logout-link">Logout</a>
+</nav>
+    </aside>
+
+    <div class="page">
+        <!-- Stats per event -->
+        <div class="page-card">
+            <h1>Statistiques des Evaluations</h1>
+            <p>Moyenne et distribution des notes par evenement.</p>
+            <div id="loading">Chargement...</div>
+            <div id="stats-grid" class="stats-grid" style="display:none"></div>
+        </div>
+
+        <!-- All ratings table -->
+        <div class="page-card">
+            <h2 class="section-title">Toutes les Evaluations</h2>
+            <div class="filter-bar">
+                <label>Evenement :
+                    <select id="filter-event">
+                        <option value="">Tous</option>
+                    </select>
+                </label>
+                <label>Note :
+                    <select id="filter-stars">
+                        <option value="">Toutes</option>
+                        <option value="5">5 ★</option>
+                        <option value="4">4 ★</option>
+                        <option value="3">3 ★</option>
+                        <option value="2">2 ★</option>
+                        <option value="1">1 ★</option>
+                    </select>
+                </label>
+                <label>Recherche :
+                    <input id="filter-search" type="text" placeholder="Nom ou email..." style="width:180px">
+                </label>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Evenement</th>
+                        <th>Utilisateur</th>
+                        <th>Email</th>
+                        <th>Note</th>
+                        <th>Score</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="ratings-tbody"></tbody>
+            </table>
+            <p id="empty-msg" style="display:none;margin-top:14px;color:#7a8194;">Aucune evaluation trouvee.</p>
+        </div>
+
+        <div class="page-card">
+            <h2 class="section-title">Commentaires Des Evenements</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Evenement</th>
+                        <th>Utilisateur</th>
+                        <th>Email</th>
+                        <th>Commentaire</th>
+                        <th>Likes</th>
+                        <th>Dislikes</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="comments-tbody"></tbody>
+            </table>
+            <p id="comments-empty-msg" style="display:none;margin-top:14px;color:#7a8194;">Aucun commentaire trouve.</p>
+        </div>
+    </div>
+
+    <script>
+        let allRatings = [];
+        let allStats = [];
+        let allComments = [];
+
+        function esc(v) {
+            return (v ?? '').toString()
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function starsHtml(n) {
+            return `<span class="stars">${'★'.repeat(n)}</span><span class="stars-empty">${'☆'.repeat(5 - n)}</span>`;
+        }
+
+        function scoreBadge(n) {
+            return `<span class="score-badge score-${n}">${n}/5</span>`;
+        }
+
+        function buildStatsGrid(stats) {
+            const grid = document.getElementById('stats-grid');
+            grid.innerHTML = '';
+            if (!stats || stats.length === 0) {
+                grid.innerHTML = '<p style="color:#7a8194">Aucune evaluation pour le moment.</p>';
+                grid.style.display = 'block';
+                return;
+            }
+            for (const s of stats) {
+                const total = s.rating_count || 1;
+                const bars = [5, 4, 3, 2, 1].map(star => {
+                    const count = s[`${['one','two','three','four','five'][star-1]}_star`] || 0;
+                    const pct = Math.round((count / total) * 100);
+                    return `<div class="bar-row">
+                        <span class="bar-label">${star}</span>
+                        <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
+                        <span class="bar-num">${count}</span>
+                    </div>`;
+                }).join('');
+
+                const card = document.createElement('div');
+                card.className = 'stat-card';
+                card.innerHTML = `
+                    <div class="event-name" title="${esc(s.event_title)}">${esc(s.event_title)}</div>
+                    <div class="avg">${parseFloat(s.avg_rating).toFixed(1)}</div>
+                    <div class="avg-label">/ 5 en moyenne</div>
+                    <div class="count">${s.rating_count} avis</div>
+                    ${bars}
+                `;
+                grid.appendChild(card);
+            }
+            grid.style.display = 'grid';
+        }
+
+        function renderTable(ratings) {
+            const tbody = document.getElementById('ratings-tbody');
+            const empty = document.getElementById('empty-msg');
+            if (!ratings || ratings.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+            tbody.innerHTML = ratings.map((r, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${esc(r.event_title)}</td>
+                    <td>${esc(r.username || '-')}</td>
+                    <td>${esc(r.email || '-')}</td>
+                    <td>${starsHtml(r.stars)}</td>
+                    <td>${scoreBadge(r.stars)}</td>
+                    <td>${esc((r.updated_at || '').slice(0, 16).replace('T', ' '))}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCommentsTable(comments) {
+            const tbody = document.getElementById('comments-tbody');
+            const empty = document.getElementById('comments-empty-msg');
+            if (!comments || comments.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+            tbody.innerHTML = comments.map((c, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${esc(c.event_title)}</td>
+                    <td>${esc(c.username || '-')}</td>
+                    <td>${esc(c.email || '-')}</td>
+                    <td style="max-width:420px;white-space:normal;line-height:1.45;">
+                        ${c.is_masked ? `
+                            <div class="masked-comment">
+                                <span class="masked-badge">Masque</span>
+                                <div>${esc(c.content || '-')}</div>
+                                <button class="reveal-btn" type="button" data-reveal-comment="${c.id}">Voir le commentaire</button>
+                                <div class="original-comment" id="original-comment-${c.id}">${esc(c.original_content || '-')}</div>
+                            </div>
+                        ` : esc(c.content || '-')}
+                    </td>
+                    <td>${Number(c.like_count || 0)}</td>
+                    <td>${Number(c.dislike_count || 0)}</td>
+                    <td>${esc((c.updated_at || '').slice(0, 16).replace('T', ' '))}</td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-reveal-comment]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const commentId = btn.getAttribute('data-reveal-comment');
+                    const box = document.getElementById(`original-comment-${commentId}`);
+                    if (!box) return;
+                    const isOpen = box.classList.toggle('open');
+                    btn.textContent = isOpen ? 'Masquer le commentaire' : 'Voir le commentaire';
+                });
+            });
+        }
+
+        function applyFilters() {
+            const eventFilter = document.getElementById('filter-event').value;
+            const starsFilter = document.getElementById('filter-stars').value;
+            const search = document.getElementById('filter-search').value.toLowerCase();
+
+            const filtered = allRatings.filter(r => {
+                if (eventFilter && String(r.event_id) !== eventFilter) return false;
+                if (starsFilter && String(r.stars) !== starsFilter) return false;
+                if (search) {
+                    const hay = ((r.username || '') + ' ' + (r.email || '')).toLowerCase();
+                    if (!hay.includes(search)) return false;
+                }
+                return true;
+            });
+            const filteredComments = allComments.filter(c => {
+                if (eventFilter && String(c.event_id) !== eventFilter) return false;
+                if (search) {
+                    const hay = ((c.username || '') + ' ' + (c.email || '') + ' ' + (c.content || '')).toLowerCase();
+                    if (!hay.includes(search)) return false;
+                }
+                return true;
+            });
+            renderTable(filtered);
+            renderCommentsTable(filteredComments);
+        }
+
+        function populateEventFilter(ratings) {
+            const sel = document.getElementById('filter-event');
+            const seen = new Map();
+            for (const r of ratings) {
+                if (!seen.has(r.event_id)) {
+                    seen.set(r.event_id, r.event_title);
+                }
+            }
+            for (const c of allComments) {
+                if (!seen.has(c.event_id)) {
+                    seen.set(c.event_id, c.event_title);
+                }
+            }
+            for (const [id, title] of seen) {
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = title;
+                sel.appendChild(opt);
+            }
+        }
+
+        async function loadData() {
+            const loading = document.getElementById('loading');
+            try {
+                const res = await fetch('/admin/ratings/data');
+                if (!res.ok) throw new Error('Chargement impossible');
+                const data = await res.json();
+                allRatings = data.ratings || [];
+                allStats = data.stats_by_event || [];
+                allComments = data.comments || [];
+
+                loading.style.display = 'none';
+                buildStatsGrid(allStats);
+                populateEventFilter(allRatings);
+                renderTable(allRatings);
+                renderCommentsTable(allComments);
+            } catch (err) {
+                loading.textContent = 'Erreur de chargement: ' + err.message;
+            }
+        }
+
+        document.getElementById('filter-event').addEventListener('change', applyFilters);
+        document.getElementById('filter-stars').addEventListener('change', applyFilters);
+        document.getElementById('filter-search').addEventListener('input', applyFilters);
+
+        loadData();
+    </script>
+</body>
+</html>

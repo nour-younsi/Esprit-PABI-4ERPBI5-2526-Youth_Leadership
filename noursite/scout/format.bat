@@ -1,0 +1,1 @@
+powershell -Command "(Get-Content index.html) -replace '<', \"`n<\" | Set-Content formatted.html"

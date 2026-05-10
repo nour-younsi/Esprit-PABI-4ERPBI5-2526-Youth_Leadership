@@ -1,0 +1,6 @@
+Metric,ARIMA,SARIMA
+MAE,3.5086,3.3582
+RMSE,3.9515,3.9101
+MAPE (%),1.52,1.46
+R² Score,-0.0382,-0.0166
+Accuracy (%),98.27,98.29

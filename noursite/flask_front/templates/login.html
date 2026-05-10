@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Barlow, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(140deg, #11161f 0%, #2a3040 65%, #e90b35 140%);
+      padding: 20px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      border-top: 5px solid #e90b35;
+      padding: 28px;
+      box-shadow: 0 22px 58px rgba(17,22,31,0.25);
+    }
+    h1 { margin: 0 0 8px; color: #11161f; text-transform: uppercase; font-size: 1.4rem; }
+    p { color: #5c6575; margin: 0 0 16px; }
+    label { display: block; margin: 0 0 6px; font-weight: 600; color: #11161f; }
+    input {
+      width: 100%;
+      border: 1px solid #ccd2de;
+      padding: 10px 12px;
+      margin: 0 0 14px;
+      font-size: 0.95rem;
+    }
+    button {
+      width: 100%;
+      border: none;
+      background: #e90b35;
+      color: #fff;
+      padding: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      border: 2px solid #e90b35;
+      background: #fff;
+      color: #e90b35;
+      padding: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+    .btn-secondary:hover { background: #fef0f2; }
+    .error { color: #c62828; margin: 0 0 12px; }
+    .back { display: inline-block; margin-top: 12px; color: #e90b35; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <form class="card" method="post" action="/login">
+    <h1>Se connecter</h1>
+    <p>Connexion du front Flask via API FastAPI.</p>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <label for="username">Nom d'utilisateur ou email</label>
+    <input id="username" name="username" type="text" required>
+    <label for="password">Mot de passe</label>
+    <input id="password" name="password" type="password" required>
+    <button type="submit">Connexion</button>
+    <a class="btn-secondary" href="/register">Creer un compte</a>
+    <a class="back" href="/front/">Retour accueil</a>
+  </form>
+</body>
+</html>
